@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Road Runner Map</title>
+    <link rel="stylesheet" href="map.css">
+  </head>
+  
+  <body>
+    <div id="map"></div>
+
+    <div id="sidebar"> 
+        <h1>Road Runner Trip Planner</h1>
+
+        <div class="info-window" id="trip-general-info">
+            <h2>Trip Information</h2>
+            <p>Latitude: <span id="lat">N/A</span></p>
+            <p>Longitude: <span id="lng">N/A</span></p>
+            <!-- Maybe change to a start and end time in the future so users can pick -->
+            <p>Estimated Time: <span id="time">N/A</span></p>
+            <p>Estimated Cost: <span id="cost">N/A</span></p>
+        </div>
+
+        <div class="info-window" id="trip-stop-info"> 
+            <h2>Trip Stops</h2>
+            <!--TODO: temporary to test out adding markers-->
+            <ul id="stops-list"></ul>
+            <p id="distance-time">N/A</p>
+            <p id="start-end">N/A</p>
+        </div>
+    </div>
+
+    //Loads the Google Maps API
+    <script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
+        ({key: AIzaSyDJb2ws0QnsSftZ3PHrYrguZaAq8m5W3Ig, v: "beta"});</script>
+    <script type="module" src="map.js"></script>
+  </body>
+</html>

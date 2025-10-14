@@ -1,0 +1,31 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: blanchedalmond;
+}
+
+#map {
+    height: 100%;
+    width: 75%;
+    float: left;
+}
+
+#sidebar {
+    height: 100%;
+    width: 25%;
+    float: right;
+    background-color: lightgray;
+    padding: 12px;
+    box-sizing: border-box;
+}
+
+.info-window {
+    background-color: white;
+    margin: 10px;
+    padding-left: 5px;
+    padding-right: 5px;
+    box-sizing: border-box;
+    border: 2px solid black;
+    border-radius: 25px;
+}
