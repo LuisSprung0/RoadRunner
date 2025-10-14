@@ -8,7 +8,8 @@ Road Runner helps users plan cross-country or local road trips by:
 - Factoring in budget preferences (gas, lodging, food, activities, etc.)
 
 ## Tech Stack
-- TBD
+- Frontend: HTML/CSS/JavaScript
+- Backend: Python
 
 ## Getting Started
 - TBD
