@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Edu+NSW+ACT+Cursive:wght@400..700&display=swap');
+
+body {
+    background-color: #fff2f2;
+    margin: 0;
+    background-image: url("signin background.jpg");
+    background-repeat: no-repeat;        
+    background-size: cover;             
+    background-position: center center; 
+    background-attachment: fixed;    
+
+}
+.form { 
+    width: 500px; 
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    border: 1px solid #ccc;
+    background-color: white;
+    border-radius: 24px;
+    padding-top: 40px;
+}
+.form-heading {
+    width: 500px; 
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    border: 1px solid #ccc;
+    background-color: white;
+    font-size:32px;
+    padding-top:56px;
+    padding-bottom:32px;
+    text-align: center;
+    font-family: 'Edu NSW ACT Cursive', cursive;
+    border-radius: 24px;
+}
+#heading-wrapper {
+    width: 700px;
+    height: 100px;
+    background-color: white;
+}
+.social-icons {
+    width: 200px;
+    height: 200px;
+    padding-top: 16px; 
+    padding-bottom: 0px;
+    display: block;
+    margin: 0 auto;
+}
+.input-fields-container {
+    padding-top: 80px;
+    padding-bottom: 0px
+    padding-left 40px;
+    padding-right: 40px;
+}
+#input-wrapper {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    border-radius: 24px;
+    padding-top: 40px;
+    padding-bottom: 20px;
+    padding-left: 80px;
+    padding-right:80px;
+}
+.form-block {
+    flex: 1;
+    min-width: 300px;
+}
+.input-box {
+    font-size: 18px;
+    padding-bottom: 12px;
+    margin-bottom: 36px;
+    border: 0;
+    border-bottom: 1px solid #ccc;
+    font-family: 'Edu NSW ACT Cursive', cursive;
+    text-align: center;
+    font-weight: bold;
+}
+.submit-button {
+    background-color: #ff8a8a;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    padding-left: 24px;
+    padding-right: 24px;
+    font-size: 18px;
+    color: white;
+    border: none;
+    text-align: center;
+    margin-bottom: 24px;
+    border-radius: 24px;
+    font-family: 'Edu NSW ACT Cursive', cursive; 
+    font-weight: bold;
+}
+#social-wrapper {
+    background-color:#fff2f2;
+}
