@@ -8,7 +8,6 @@ body {
     background-size: cover;             
     background-position: center center; 
     background-attachment: fixed;    
-
 }
 .form { 
     width: 500px; 
@@ -28,11 +27,12 @@ body {
     border: 1px solid #ccc;
     background-color: white;
     font-size:32px;
-    padding-top:56px;
-    padding-bottom:32px;
     text-align: center;
+    padding-bottom:10px;
+    padding-top:5px;
     font-family: 'Edu NSW ACT Cursive', cursive;
     border-radius: 24px;
+    user-select: none;
 }
 #heading-wrapper {
     width: 700px;
@@ -46,11 +46,13 @@ body {
     padding-bottom: 0px;
     display: block;
     margin: 0 auto;
+    user-select: none;
+    pointer-events: none;
 }
 .input-fields-container {
     padding-top: 80px;
-    padding-bottom: 0px
-    padding-left 40px;
+    padding-bottom: 0px;
+    padding-left: 40px;
     padding-right: 40px;
 }
 #input-wrapper {
