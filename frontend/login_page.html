@@ -10,27 +10,45 @@
     <body>
         <main>
             <img src="images/Road Runner.png" class="social-icons">
-                <div id="input-wrapper">
-                    <div class="form-block">
-                        <h1 class="form-heading">Register</h1>
-                            <form class="form" class="input-fields-container" method="POST">
-                                <div><input type="text" name="username" placeholder="Username" class="input-box"></div>
-                                <div><br><input type="email" name="email" placeholder="Email" class="input-box"></div>
-                                <div><br><input type="password" name="password" placeholder="Password" class="input-box"></div>
-                                <div><br><input type="password" name="confirm-password" placeholder="Confirm Password" class="input-box"></div>
-                                <div><input type="submit" name="submit" value="Register" class="submit-button"></div>
-                            </form>
-                    </div>
-                    <div class="form-block">
-                        <h1 class="form-heading">Sign In</h1>
-                            <form class="form" class="input-fields-container" method="POST">
-                                <div><input type="text" name="username" placeholder="Username" class="input-box"></div>
-                                <div><br><input type="password" name="password" placeholder="Password" class="input-box"></div>
-                                <div><input type="submit" name="submit" value="Sign In" class="submit-button"></div>
-                            </form>    
-                    </div>
+            <div id="input-wrapper">
+                <!-- REGISTER -->
+                <div class="form-block">
+                    <h1 class="form-heading">Register</h1>
+                    <form id="registerForm" class="form input-fields-container">
+                        <div>
+                            <input type="email" name="email" placeholder="Email" class="input-box" required>
+                        </div>
+                        <div><br>
+                            <input type="password" name="password" placeholder="Password" class="input-box" required>
+                        </div>
+                        <div><br>
+                            <input type="password" name="confirm-password" placeholder="Confirm Password" class="input-box" required>
+                        </div>
+                        <div>
+                            <input type="submit" value="Register" class="submit-button">
+                        </div>
+                    </form>
                 </div>
+
+                <!-- LOGIN -->
+                <div class="form-block">
+                    <h1 class="form-heading">Sign In</h1>
+                    <form id="loginForm" class="form input-fields-container">
+                        <div>
+                            <input type="email" name="email" placeholder="Email" class="input-box" required>
+                        </div>
+                        <div><br>
+                            <input type="password" name="password" placeholder="Password" class="input-box" required>
+                        </div>
+                        <div>
+                            <input type="submit" value="Sign In" class="submit-button">
+                        </div>
+                    </form>    
+                </div>
+            </div>
         </main>
+
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
         <script src="index.js"></script>
     </body>
 </html>
