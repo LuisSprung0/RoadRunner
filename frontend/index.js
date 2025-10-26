@@ -33,7 +33,7 @@ registerForm.addEventListener('submit', async (e) => {
     if (error) {
         showMessage("Error signing up: " + error.message, true);
     } else {
-        showMessage("Registration successful! Check your email to confirm.");
+        showMessage("Registration successful!");
         registerForm.reset();
     }
 });
