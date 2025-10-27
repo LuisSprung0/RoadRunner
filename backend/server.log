@@ -1,0 +1,28 @@
+ * Serving Flask app 'app'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://10.136.138.13:5001
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 782-144-796
+Traceback (most recent call last):
+  File "/Users/harshithsankarnarne/Desktop/RoadRunner_Project/RoadRunner/backend/app.py", line 82, in <module>
+    app.run(host='0.0.0.0', port=5001, debug=True)
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/flask/app.py", line 612, in run
+    run_simple(t.cast(str, host), port, self, **options)
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/werkzeug/serving.py", line 1115, in run_simple
+    run_with_reloader(
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/werkzeug/_reloader.py", line 459, in run_with_reloader
+    ensure_echo_on()
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/werkzeug/_reloader.py", line 439, in ensure_echo_on
+    termios.tcsetattr(sys.stdin, termios.TCSANOW, attributes)
+termios.error: (4, 'Interrupted system call')
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x00000001feac0840 (most recent call first):
+  <no Python frame>
