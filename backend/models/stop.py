@@ -3,11 +3,11 @@
 from enum import Enum
 
 class StopType(Enum):
-    FOOD = "images/planets.png" #Going to be filepaths for images later
-    REST = "images/planets.png" #relative from frontend folder
-    FUEL = "images/planets.png"
-    ENTERTAINMENT = "images/planets.png"
-    MISC = "images/planets.png"
+    FOOD = "images/Road Runner.png" #Going to be filepaths for images later
+    REST = "images/Road Runner.png" #relative from frontend folder
+    FUEL = "images/Road Runner.png"
+    ENTERTAINMENT = "images/Road Runner.png"
+    MISC = "images/Road Runner.png"
 
 class Stop:
     def __init__(self, location, type, time=0, cost=0):
@@ -31,16 +31,16 @@ class Stop:
     def get_image(self):
         return self.type.value
     
-    def set_location(location):
+    def set_location(self, location):
         self.location = location
 
-    def set_type(type):
+    def set_type(self, type):
         self.type = type
 
-    def set_time(time):
+    def set_time(self, time):
         self.time = time
         
-    def set_cost(cost):
+    def set_cost(self, cost):
         self.cost = cost
 
     def to_dict(self):
@@ -55,6 +55,7 @@ class Stop:
         # Placeholder
         pass
 
-    def load_from_db(self):
+    @staticmethod
+    def get_from_db():
         # Placeholder
         pass

@@ -11,6 +11,10 @@ class User:
     @staticmethod
     def hash_password(password):
         return hashlib.sha256(password.encode()).hexdigest()
+    
+    def get_trips(self):
+        # Placeholder
+        pass
 
     def save_to_db(self):
             try:
