@@ -3,6 +3,7 @@ from flask_cors import CORS
 import sqlite3
 import hashlib
 from datetime import datetime
+from models.user import User
 
 app = Flask(__name__)
 # Enable CORS for all origins (including file://)
@@ -31,21 +32,9 @@ def register():
     if not email or not password:
         return jsonify({'error': 'Email and password required'}), 400
     
-    # Hash password
-    hashed_password = hash_password(password)
-    
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('INSERT INTO users (email, password) VALUES (?, ?)', 
-                      (email, hashed_password))
-        conn.commit()
-        conn.close()
-        return jsonify({'message': 'User registered successfully'}), 201
-    except sqlite3.IntegrityError:
-        return jsonify({'error': 'Email already exists'}), 400
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    #Password hashing & user creation happens in User class
+    user = User(email, password)
+    return user.save_to_db()
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -56,28 +45,8 @@ def login():
     if not email or not password:
         return jsonify({'error': 'Email and password required'}), 400
     
-    # Hash password to compare
-    hashed_password = hash_password(password)
-    
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        user = cursor.execute('SELECT * FROM users WHERE email = ? AND password = ?', 
-                             (email, hashed_password)).fetchone()
-        conn.close()
-        
-        if user:
-            return jsonify({
-                'message': 'Login successful',
-                'user': {
-                    'id': user['id'],
-                    'email': user['email']
-                }
-            }), 200
-        else:
-            return jsonify({'error': 'Invalid email or password'}), 401
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    #Password hashing happens in User class
+    return User.get_from_db(email, password)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)

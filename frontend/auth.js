@@ -1,5 +1,5 @@
 // API Configuration
-const API_URL = '/api';  // Simple relative path
+const API_URL = 'http://localhost:5001/api';  // Simple relative path
 
 // Show message helper
 function showMessage(message, isError = false) {
