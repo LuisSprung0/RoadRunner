@@ -48,5 +48,20 @@ def login():
     #Password hashing happens in User class
     return User.get_from_db(email, password)
 
+@app.route('/api/trips', methods=['GET'])
+def trips():
+    return jsonify([{
+            'name': "Sample Trip 1",
+            'description': "A sample trip description",
+            'image_url': "",
+            'stops': []
+        },
+        {
+            'name': "Sample Trip 2",
+            'description': "A sample trip description",
+            'image_url': "",
+            'stops': []
+        }]), 200 # Placeholder for trip data
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)
