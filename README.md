@@ -13,3 +13,7 @@ Road Runner helps users plan cross-country or local road trips by:
 
 ## Getting Started
 - TBD
+ We have organized our code into models for data structures, routes for API endpoints, services for business logic, and utilities for helper functions. This structure allows for scalability and maintainability."
+
+
+Frontend -> routes -> services -> database -> frontend

@@ -16,7 +16,8 @@ async function initMap() {
     mapId: "mapId",
   });
 
-  const markers = [];
+  // Store markers globally so we can access them from saveTripToBackend
+  window.tripMarkers = [];
   
   //Event listeners
   map.addListener("click", (event) => {
@@ -28,14 +29,14 @@ async function initMap() {
     latText.innerText = clickedLatLng[0];
     lngText.innerText = clickedLatLng[1];
 
-    if (markers.length <= 1) {
+    if (window.tripMarkers.length <= 1) {
       const stopList = document.getElementById("stops-list");
       const newStop = document.createElement("li");
       newStop.innerText = `Stop at (${clickedLatLng[0]}, ${clickedLatLng[1]})`;
       stopList.appendChild(newStop);
-      markers.push(placeMarkerAndPanTo(map, event.latLng));
-      if (markers.length == 2) {
-        getDistance(map, bounds, geocoder, service, markers[0], markers[1]);
+      window.tripMarkers.push(placeMarkerAndPanTo(map, event.latLng));
+      if (window.tripMarkers.length == 2) {
+        getDistance(map, bounds, geocoder, service, window.tripMarkers[0], window.tripMarkers[1]);
       }
     } else {
       console.log("Maximum of two stops reached");  
@@ -91,5 +92,86 @@ function getDistance(map, bounds, geocoder, service, marker1, marker2) {
     return response;
   });
 }
+
+// Function to save trip to backend
+async function saveTripToBackend() {
+  const statusEl = document.getElementById('save-status');
+  
+  // Get user ID from localStorage
+  const userId = localStorage.getItem('user_id');
+  if (!userId) {
+    statusEl.innerText = '❌ Please login first to save trips';
+    statusEl.style.color = 'red';
+    return;
+  }
+
+  // Get trip name and description
+  const tripName = document.getElementById('trip-name').value.trim();
+  if (!tripName) {
+    statusEl.innerText = '❌ Please enter a trip name';
+    statusEl.style.color = 'red';
+    return;
+  }
+  
+  const tripDescription = document.getElementById('trip-description').value.trim();
+
+  // Get stops from markers
+  if (!window.tripMarkers || window.tripMarkers.length === 0) {
+    statusEl.innerText = '❌ Please add at least one stop on the map';
+    statusEl.style.color = 'red';
+    return;
+  }
+
+  const stops = window.tripMarkers.map(marker => ({
+    location: [marker.position.lat(), marker.position.lng()],
+    type: 'MISC',  // Default type, can be enhanced later
+    time: 0,       // Can be calculated or entered by user
+    cost: 0        // Can be calculated or entered by user
+  }));
+
+  // Prepare trip data
+  const tripData = {
+    user_id: parseInt(userId),
+    name: tripName,
+    description: tripDescription,
+    image_url: '',
+    stops: stops
+  };
+
+  // Show loading status
+  statusEl.innerText = '⏳ Saving trip...';
+  statusEl.style.color = 'blue';
+
+  try {
+    const response = await fetch('http://localhost:5001/api/trips/save', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(tripData)
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      statusEl.innerText = `✅ Trip saved successfully! Trip ID: ${data.trip_id}`;
+      statusEl.style.color = 'green';
+      
+      // Clear form
+      document.getElementById('trip-name').value = '';
+      document.getElementById('trip-description').value = '';
+    } else {
+      statusEl.innerText = `❌ Error: ${data.error}`;
+      statusEl.style.color = 'red';
+    }
+  } catch (error) {
+    statusEl.innerText = `❌ Network error: ${error.message}`;
+    statusEl.style.color = 'red';
+    console.error('Error saving trip:', error);
+  }
+}
+
+// Make function globally available
+window.saveTripToBackend = saveTripToBackend;
 
 initMap();
