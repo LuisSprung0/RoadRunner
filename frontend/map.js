@@ -41,7 +41,7 @@ async function initMap() {
       newStop.innerText = `Stop at (${clickedLatLng[0]}, ${clickedLatLng[1]})`;
       stopList.appendChild(newStop);
 
-      window.tripMarkers.push(placeMarkerevent.latLng);
+      window.tripMarkers.push(placeMarker(event.latLng));
       panTo(event.latLng);
 
       if (window.tripMarkers.length == 2) {
