@@ -50,21 +50,6 @@ def login():
     #Password hashing happens in User class
     return User.get_from_db(email, password)
 
-@app.route('/api/trips', methods=['GET'])
-def trips():
-    return jsonify([{
-            'name': "Sample Trip 1",
-            'description': "A sample trip description",
-            'image_url': "",
-            'stops': []
-        },
-        {
-            'name': "Sample Trip 2",
-            'description': "A sample trip description",
-            'image_url': "",
-            'stops': []
-        }]), 200 # Placeholder for trip data
-
 @app.route('/api/trips/save', methods=['POST'])
 def save_trip():
     """Save a new trip with stops"""

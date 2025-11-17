@@ -1,17 +1,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Edu+NSW+ACT+Cursive:wght@400..700&display=swap');
 
+/* We need this for the map to appear, DO NOT DELETE */
+html {
+    height: 100%;
+    width: 100%;
+}
+
 body {
     height: 100%;
     width: 100%;
     margin: 0;
     padding: 0;
     background-image:url("images/mbg2.jpg");
+    display: flex;
+    overflow: hidden;
     z-index: -100;
     background-repeat: no-repeat;        
     background-size: cover;             
     background-position: center center; 
-    background-attachment: fixed;    
-
+    background-attachment: fixed;
 }
 
 #map {
@@ -37,6 +44,7 @@ body {
     flex-direction: column;
     justify-content: flex-start;
     align-items: center; 
+    overflow-y: auto;
 }
 
 .info-window {

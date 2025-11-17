@@ -1,3 +1,5 @@
+import {API_URL} from './utils.js'
+
 async function initMap() {
   // Request needed libraries.
   const { Map, InfoWindow } = await google.maps.importLibrary("maps");
@@ -10,7 +12,7 @@ async function initMap() {
   const service = new google.maps.DistanceMatrixService();
 
   const myLatlng = { lat: 38.9072, lng: -77.0369 }; // Washington, DC
-  const map = new Map(document.getElementById("map"), { //Create the map with defaults
+  window.map = new Map(document.getElementById("map"), { //Create the map with defaults
     zoom: 4,
     center: myLatlng,
     mapId: "mapId",
@@ -18,9 +20,13 @@ async function initMap() {
 
   // Store markers globally so we can access them from saveTripToBackend
   window.tripMarkers = [];
+  const current_trip_id = localStorage.getItem('current_trip_id');
+  if (current_trip_id != -1)
+    initializeMarkersFromTrip(current_trip_id);
   
   //Event listeners
-  map.addListener("click", (event) => {
+  window.map.addListener("click", (event) => {
+    //PURELY FOR TESTING PURPOSES, TO BE REMOVED LATER
     const clickedLatLng = [event.latLng.lat().toFixed(4), event.latLng.lng().toFixed(4)];
     console.log("Clicked at " + clickedLatLng[0] + ", " + clickedLatLng[1]);
 
@@ -34,9 +40,12 @@ async function initMap() {
       const newStop = document.createElement("li");
       newStop.innerText = `Stop at (${clickedLatLng[0]}, ${clickedLatLng[1]})`;
       stopList.appendChild(newStop);
-      window.tripMarkers.push(placeMarkerAndPanTo(map, event.latLng));
+
+      window.tripMarkers.push(placeMarkerevent.latLng);
+      panTo(event.latLng);
+
       if (window.tripMarkers.length == 2) {
-        getDistance(map, bounds, geocoder, service, window.tripMarkers[0], window.tripMarkers[1]);
+        getDistance(bounds, geocoder, service, window.tripMarkers[0], window.tripMarkers[1]);
       }
     } else {
       console.log("Maximum of two stops reached");  
@@ -44,12 +53,12 @@ async function initMap() {
   });
 }
 
-function placeMarkerAndPanTo(map, latLng) {
+function placeMarker(latLng) {
   const pin = new google.maps.marker.PinElement({
     scale: 1.5,
   });
   const marker = new google.maps.marker.AdvancedMarkerElement({
-    map: map,
+    map: window.map,
     position: latLng,
     title: `Stop at (${latLng.lat().toFixed(4)}, ${latLng.lng().toFixed(4)})`,
     content: pin.element,
@@ -63,15 +72,16 @@ function placeMarkerAndPanTo(map, latLng) {
     infoWindow.setContent(marker.title);
     infoWindow.open(marker.map, marker);
   });
-
-  map.panTo(latLng);
-  if (map.getZoom() < 8)
-    map.setZoom(8);
-
   return marker;
 }
 
-function getDistance(map, bounds, geocoder, service, marker1, marker2) {
+function panTo(latLng, zoomLevel) {
+  window.map.panTo(latLng);
+  if (window.map.getZoom() < 8)
+    window.map.setZoom(8);
+}
+
+function getDistance(bounds, geocoder, service, marker1, marker2) {
   //Request distance matrix
   const origin1 = marker1.position;
   const destination1 = marker2.position;
@@ -91,6 +101,35 @@ function getDistance(map, bounds, geocoder, service, marker1, marker2) {
     document.getElementById("start-end").innerText = "From " + response.originAddresses[0] + " to " + response.destinationAddresses[0];
     return response;
   });
+}
+
+async function initializeMarkersFromTrip(trip_id) {
+  const trip = await fetchUserTrip(trip_id);
+  if (!trip || !trip.stops) return;
+
+  const stopList = document.getElementById("stops-list");
+  trip.stops.forEach(stop => {
+    const newStop = document.createElement("li");
+    newStop.innerText = `Stop at (${stop.location[0]}, ${stop.location[1]})`;
+    stopList.appendChild(newStop);
+
+    const latLng = new google.maps.LatLng(stop.location[0], stop.location[1]);
+    window.tripMarkers.push(placeMarker(latLng));
+  });
+}
+
+async function fetchUserTrip(trip_id) {
+  try {
+    const response = await fetch(`${API_URL}/trips/${trip_id}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await response.json();
+    return data.trip;
+  } catch (error) {
+    console.error("Error fetching user trips:", error);
+    return [];
+  }
 }
 
 // Function to save trip to backend
@@ -123,7 +162,7 @@ async function saveTripToBackend() {
   }
 
   const stops = window.tripMarkers.map(marker => ({
-    location: [marker.position.lat(), marker.position.lng()],
+    location: [marker.position.lat, marker.position.lng],
     type: 'MISC',  // Default type, can be enhanced later
     time: 0,       // Can be calculated or entered by user
     cost: 0        // Can be calculated or entered by user
@@ -143,7 +182,7 @@ async function saveTripToBackend() {
   statusEl.style.color = 'blue';
 
   try {
-    const response = await fetch('http://localhost:5001/api/trips/save', {
+    const response = await fetch(`${API_URL}/trips/save`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -157,6 +196,7 @@ async function saveTripToBackend() {
       statusEl.innerText = `✅ Trip saved successfully! Trip ID: ${data.trip_id}`;
       statusEl.style.color = 'green';
       
+      //TODO: Why is it refreshing the page every time it saves successfully?
       // Clear form
       document.getElementById('trip-name').value = '';
       document.getElementById('trip-description').value = '';
@@ -171,7 +211,7 @@ async function saveTripToBackend() {
   }
 }
 
-// Make function globally available
-window.saveTripToBackend = saveTripToBackend;
+// Event listener for save button
+document.getElementById('save-trip-btn').addEventListener('click', saveTripToBackend);
 
 initMap();
