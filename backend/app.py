@@ -6,6 +6,7 @@ from datetime import datetime
 from models.user import User
 from models.trip import Trip
 from models.stop import Stop, StopType
+from services.maps_service import MapsService
 
 app = Flask(__name__)
 # Enable CORS for all origins (including file://)
@@ -117,6 +118,65 @@ def get_trip(trip_id):
             return jsonify({'trip': trip.to_dict()}), 200
         else:
             return jsonify({'error': 'Trip not found'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/app/trips/<int:trip_id>/add_stop', methods=['POST'])
+def add_stop(trip_id):
+    try:
+        data = request.get_json()
+        return jsonify({'message': 'Add stop endpoint - to be implemented'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/api/maps/geocode', methods=['POST'])
+def geocode_address():
+    try:
+        data = request.get_json()
+        address = data.get('address')
+        if not address:
+            return jsonify({'error': 'Address is required'}), 400
+        
+        latlng = MapsService.geocode(address)
+        if latlng:
+            return jsonify({'latitude': latlng[0], 'longitude': latlng[1]}), 200
+        else:
+            return jsonify({'error': 'Geocoding failed'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/api/maps/reverse_geocode', methods=['POST'])
+def reverse_geocode():
+    try:
+        data = request.get_json()
+        latitude = data.get('latitude')
+        longitude = data.get('longitude')
+
+        if latitude is None or longitude is None:
+            return jsonify({'error': 'Latitude and longitude are required'}), 400
+        
+        address = MapsService.reverse_geocode(latitude, longitude)
+        if address:
+            return jsonify({'address': address}), 200
+        else:
+            return jsonify({'error': 'Reverse geocoding failed'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/api/maps/directions', methods=['POST'])
+def get_directions():
+    try:
+        data = request.get_json()
+        origin = data.get('origin')
+        destination = data.get('destination')
+        waypoints = data.get('waypoints', None)
+        mode = data.get('mode', 'driving')
+        
+        if not origin or not destination:
+            return jsonify({'error': 'Origin and destination are required'}), 400
+        
+        directions = MapsService.get_directions(origin, destination, waypoints, mode)
+        return jsonify({'directions': directions}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

@@ -1,16 +1,12 @@
 import {API_URL} from './utils.js'
+// Request needed libraries.
+const { Map, InfoWindow} = await google.maps.importLibrary("maps");
+const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
+const { encoding, Polyline } = await google.maps.importLibrary("geometry");
+const bounds = new google.maps.LatLngBounds();
+
 
 async function initMap() {
-  // Request needed libraries.
-  const { Map, InfoWindow } = await google.maps.importLibrary("maps");
-  const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
-
-  const bounds = new google.maps.LatLngBounds();
-
-  // initialize services
-  const geocoder = new google.maps.Geocoder();
-  const service = new google.maps.DistanceMatrixService();
-
   const myLatlng = { lat: 38.9072, lng: -77.0369 }; // Washington, DC
   window.map = new Map(document.getElementById("map"), { //Create the map with defaults
     zoom: 4,
@@ -20,9 +16,7 @@ async function initMap() {
 
   // Store markers globally so we can access them from saveTripToBackend
   window.tripMarkers = [];
-  const current_trip_id = localStorage.getItem('current_trip_id');
-  if (current_trip_id != -1)
-    initializeMarkersFromTrip(current_trip_id);
+  initializeMarkersFromTrip();
   
   //Event listeners
   window.map.addListener("click", (event) => {
@@ -45,12 +39,51 @@ async function initMap() {
       panTo(event.latLng);
 
       if (window.tripMarkers.length == 2) {
-        getDistance(bounds, geocoder, service, window.tripMarkers[0], window.tripMarkers[1]);
+        drawRoute();
       }
     } else {
       console.log("Maximum of two stops reached");  
     }
   });
+}
+
+async function drawRoute() { //TODO: HARDCODED FOR TWO MARKERS ONLY FOR NOW
+  const response = await fetch(`${API_URL}/maps/directions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      origin: { //Could just be the address if you have it
+        latitude: window.tripMarkers[0].position.lat,
+        longitude: window.tripMarkers[0].position.lng
+      },
+      destination: {
+        latitude: window.tripMarkers[1].position.lat,
+        longitude: window.tripMarkers[1].position.lng
+      }
+    })
+  });
+
+  const data = await response.json();
+
+  if (response.ok) {
+    const encoded = data['directions']['polyline'];
+    const decoded = encoding.decodePath(encoded);
+
+    const polyline = new google.maps.Polyline({
+      path: decoded,
+      geodesic: true,
+      strokeColor: "#4285F4",
+      strokeOpacity: 0.8,
+      strokeWeight: 6, 
+      map: window.map
+    });
+
+    const bounds = new google.maps.LatLngBounds();
+    decoded.forEach(latlng => bounds.extend(latlng));
+    window.map.fitBounds(bounds);
+  } else {
+    console.error("Failed to fetch directions:", data.error);
+  }
 }
 
 function placeMarker(latLng) {
@@ -81,41 +114,23 @@ function panTo(latLng, zoomLevel) {
     window.map.setZoom(8);
 }
 
-function getDistance(bounds, geocoder, service, marker1, marker2) {
-  //Request distance matrix
-  const origin1 = marker1.position;
-  const destination1 = marker2.position;
-  const request = {
-    origins: [origin1],
-    destinations: [destination1],
-    travelMode: google.maps.TravelMode.DRIVING,
-    unitSystem: google.maps.UnitSystem.METRIC,
-    avoidHighways: false,
-    avoidTolls: false,
-  };
+async function initializeMarkersFromTrip() {
+  const current_trip_id = localStorage.getItem('current_trip_id');
 
-  service.getDistanceMatrix(request).then((response) => {
-    //Testing distance, remove in future
-    const responseEl = response.rows[0].elements[0];
-    document.getElementById("distance-time").innerText = responseEl.distance.text + ", " + responseEl.duration.text;
-    document.getElementById("start-end").innerText = "From " + response.originAddresses[0] + " to " + response.destinationAddresses[0];
-    return response;
-  });
-}
+  if (current_trip_id != -1) { //-1 means new trip
+    const trip = await fetchUserTrip(trip_id);
+    if (!trip || !trip.stops) return;
 
-async function initializeMarkersFromTrip(trip_id) {
-  const trip = await fetchUserTrip(trip_id);
-  if (!trip || !trip.stops) return;
+    const stopList = document.getElementById("stops-list");
+    trip.stops.forEach(stop => {
+      const newStop = document.createElement("li");
+      newStop.innerText = `Stop at (${stop.location[0]}, ${stop.location[1]})`;
+      stopList.appendChild(newStop);
 
-  const stopList = document.getElementById("stops-list");
-  trip.stops.forEach(stop => {
-    const newStop = document.createElement("li");
-    newStop.innerText = `Stop at (${stop.location[0]}, ${stop.location[1]})`;
-    stopList.appendChild(newStop);
-
-    const latLng = new google.maps.LatLng(stop.location[0], stop.location[1]);
-    window.tripMarkers.push(placeMarker(latLng));
-  });
+      const latLng = new google.maps.LatLng(stop.location[0], stop.location[1]);
+      window.tripMarkers.push(placeMarker(latLng));
+    });
+  }
 }
 
 async function fetchUserTrip(trip_id) {
