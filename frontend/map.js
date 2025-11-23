@@ -16,27 +16,33 @@ async function initMap() {
 
   //following code from ChatGPT to debug information not properly displaying
   async function fetchStopPrice(lat, lng) {
-  try {
-    const response = await fetch(`${API_URL}/maps/stop-price`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ latitude: lat, longitude: lng })
-    });
+    try {
+      const response = await fetch(`${API_URL}/maps/stop-price`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ latitude: lat, longitude: lng })
+      });
 
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "Failed to get price");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to get price");
 
-    return data.price;
-  } catch (e) {
-    console.error("Price fetch failed:", e);
-    return null;
+      return data.price;
+    } catch (e) {
+      console.error("Price fetch failed:", e);
+      return null;
+    }
   }
-}
 
 
   // Store markers globally so we can access them from saveTripToBackend
+  window.trip = await fetchUserTrip(); //So we are not constantly fetching the trip (If there is a preexisting trip)
   window.tripMarkers = [];
-  initializeMarkersFromTrip();
+  let polyline = null;
+
+  if (window.trip) {
+    initializeMarkersFromTrip(window.trip);
+    drawRoute();
+  }
   
   //Event listeners
   window.map.addListener("click", async (event) => {
@@ -50,42 +56,40 @@ async function initMap() {
     lngText.innerText = clickedLatLng[1];
 
     //following code from ChatGPT to debug information not properly displaying
-    if (window.tripMarkers.length <= 1) {
-  const lat = event.latLng.lat();
-  const lng = event.latLng.lng();
+    const lat = event.latLng.lat();
+    const lng = event.latLng.lng();
 
-  // Add marker first
-  const marker = placeMarker(event.latLng);
-  window.tripMarkers.push(marker);
+    // Add marker first
+    const marker = placeMarker(event.latLng);
+    window.tripMarkers.push(marker);
 
-  // Fetch price for this stop
-  const price = await fetchStopPrice(lat, lng);
+    // Fetch price for this stop
+    const price = 0;//await fetchStopPrice(lat, lng);
 
-  // Update stop list UI
-  const stopList = document.getElementById("stops-list");
-  const newStop = document.createElement("li");
-  newStop.innerText = price !== null
-    ? `Stop at (${lat.toFixed(4)}, ${lng.toFixed(4)}): $${price}`
-    : `Stop at (${lat.toFixed(4)}, ${lng.toFixed(4)}) (price unavailable)`;
-  stopList.appendChild(newStop);
+    // Update stop list UI
+    const stopList = document.getElementById("stops-list");
+    const newStop = document.createElement("li");
+    newStop.innerText = price !== null
+      ? `Stop at (${lat.toFixed(4)}, ${lng.toFixed(4)}): $${price}`
+      : `Stop at (${lat.toFixed(4)}, ${lng.toFixed(4)}) (price unavailable)`;
+    stopList.appendChild(newStop);
 
-  // Attach price to marker object for saveTripToBackend()
-  marker.stopPrice = price;
+    // Attach price to marker object for saveTripToBackend()
+    marker.stopPrice = price;
 
-  panTo(event.latLng);
+    panTo(event.latLng);
 
-  if (window.tripMarkers.length == 2) {
-    drawRoute();
-  }
-}
- 
-    else {
-      console.log("Maximum of two stops reached");  
+    if (window.tripMarkers.length >= 2) {
+      if (polyline) 
+        polyline.map = null; //Remove old polyline
+      polyline = drawRoute();
     }
   });
 }
 
-async function drawRoute() { //TODO: HARDCODED FOR TWO MARKERS ONLY FOR NOW
+async function drawRoute() { //Draws the route for the current markers
+  if (window.tripMarkers.length < 2) return null;
+
   const response = await fetch(`${API_URL}/maps/directions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -95,9 +99,13 @@ async function drawRoute() { //TODO: HARDCODED FOR TWO MARKERS ONLY FOR NOW
         longitude: window.tripMarkers[0].position.lng
       },
       destination: {
-        latitude: window.tripMarkers[1].position.lat,
-        longitude: window.tripMarkers[1].position.lng
-      }
+        latitude: window.tripMarkers[window.tripMarkers.length-1].position.lat,
+        longitude: window.tripMarkers[window.tripMarkers.length-1].position.lng
+      },
+      waypoints: window.tripMarkers.slice(1, -1).map(marker => ({
+        latitude: marker.position.lat,
+        longitude: marker.position.lng
+      }))
     })
   });
 
@@ -119,9 +127,12 @@ async function drawRoute() { //TODO: HARDCODED FOR TWO MARKERS ONLY FOR NOW
     const bounds = new google.maps.LatLngBounds();
     decoded.forEach(latlng => bounds.extend(latlng));
     window.map.fitBounds(bounds);
+    return polyline;
   } else {
     console.error("Failed to fetch directions:", data.error);
   }
+
+  return null;
 }
 
 function placeMarker(latLng) {
@@ -153,36 +164,42 @@ function panTo(latLng, zoomLevel) {
 }
 
 async function initializeMarkersFromTrip() {
-  const current_trip_id = localStorage.getItem('current_trip_id');
+  if (!window.trip) return;
 
-  if (current_trip_id != -1) { //-1 means new trip
-    const trip = await fetchUserTrip(current_trip_id);
-    if (!trip || !trip.stops) return;
+  const trip = window.trip;
+  const stopList = document.getElementById("stops-list");
+  trip.stops.forEach(stop => {
+    const newStop = document.createElement("li");
+    newStop.innerText = `Stop at (${stop.location[0]}, ${stop.location[1]})`;
+    stopList.appendChild(newStop);
 
-    const stopList = document.getElementById("stops-list");
-    trip.stops.forEach(stop => {
-      const newStop = document.createElement("li");
-      newStop.innerText = `Stop at (${stop.location[0]}, ${stop.location[1]})`;
-      stopList.appendChild(newStop);
-
-      const latLng = new google.maps.LatLng(stop.location[0], stop.location[1]);
-      window.tripMarkers.push(placeMarker(latLng));
-    });
-  }
+    const latLng = new google.maps.LatLng(stop.location[0], stop.location[1]);
+    window.tripMarkers.push(placeMarker(latLng));
+  });
 }
 
-async function fetchUserTrip(trip_id) {
-  try {
-    const response = await fetch(`${API_URL}/trips/${trip_id}`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    });
-    const data = await response.json();
-    return data.trip;
-  } catch (error) {
-    console.error("Error fetching user trips:", error);
-    return [];
+async function fetchUserTrip() {
+  const trip_id = localStorage.getItem('current_trip_id');
+
+  if (trip_id != -1 && trip_id != null) {
+    try {
+      const response = await fetch(`${API_URL}/trips/${trip_id}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await response.json();
+
+      if (response.ok)
+        return data.trip;
+      else
+        console.error("Failed to fetch trip:", data.error);
+    } catch (error) {
+      console.error("Error fetching user trips:", error);
+      return null;
+    }
   }
+
+  return null;
 }
 
 // Function to save trip to backend

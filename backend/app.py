@@ -120,6 +120,28 @@ def get_trip(trip_id):
             return jsonify({'error': 'Trip not found'}), 404
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+@app.route('/api/trips/<int:trip_id>/directions', methods=['GET']) #Need to test
+def get_trip_directions(trip_id):
+    """Get directions for a specific trip"""
+    try:
+        trip = Trip.get_from_db(trip_id)
+        if not trip:
+            return jsonify({'error': 'Trip not found'}), 404
+        if len(trip.stops) < 2:
+            return jsonify({'error': 'At least two stops are required to get directions'}), 400
+        
+        origin = trip.stops[0].get_location()
+        destination = trip.stops[-1].get_location()
+        waypoints = [stop.get_location() for stop in trip.stops[1:-1]]
+        
+        directions = MapsService.get_directions(origin, destination, waypoints)
+        if directions is None:
+            return jsonify({'error': 'Unroutable location'}), 404
+        
+        return jsonify({'directions': directions}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/app/trips/<int:trip_id>/add_stop', methods=['POST'])
 def add_stop(trip_id):
@@ -176,6 +198,10 @@ def get_directions():
             return jsonify({'error': 'Origin and destination are required'}), 400
         
         directions = MapsService.get_directions(origin, destination, waypoints, mode)
+
+        if directions is None:
+            return jsonify({'error': 'Unroutable location'}), 404
+
         return jsonify({'directions': directions}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500

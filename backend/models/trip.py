@@ -70,7 +70,8 @@ class Trip:
             'description': self.description,
             'image_url': self.image_url,
             'created_at': self.created_at,
-            'stops': [stop.to_dict() for stop in self.stops]
+            'stops': [stop.to_dict() for stop in self.stops],
+            'total_cost': self.total_cost()
         }
         return trip_dict
 

@@ -37,6 +37,9 @@ class MapsService:
                                             mode=mode,
                                             departure_time=departure_time)
         
+        if not directions_result:
+            return None
+        
         route = directions_result[0] if directions_result else None
         polyline = route['overview_polyline']['points'] if directions_result else None
         total_distance = sum(leg['distance']['value'] for leg in route['legs']) if route else 0
@@ -58,4 +61,16 @@ if __name__ == "__main__":
         print(f"Reverse geocoded {latlng} to: '{rev_address}'")
 
     directions = MapsService.get_directions("New York, NY", "Los Angeles, CA")
-    print(f"Directions from New York, NY to Los Angeles, CA: {directions['total_distance']} meters, {directions['total_duration']} seconds")
+    if directions is None:
+        print("Directions result: None (as expected for unreachable points)")
+    else:
+        print(f"Directions from New York, NY to Los Angeles, CA: {directions['total_distance']} meters, {directions['total_duration']} seconds")
+
+    directions = MapsService.get_directions( #unreachable ocean points for testing
+        [31.0456, -67.6765],  #Ocean
+        [31.8404, -67.3313]  #Ocean
+    )
+    if directions is None:
+        print("Directions result: None (as expected for unreachable points)")
+    else:
+        print(f"Directions from Ocean Point A to Ocean Point B: {directions['total_distance']} meters, {directions['total_duration']} seconds")
