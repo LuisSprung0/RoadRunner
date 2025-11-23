@@ -14,12 +14,32 @@ async function initMap() {
     mapId: "mapId",
   });
 
+  //following code from ChatGPT to debug information not properly displaying
+  async function fetchStopPrice(lat, lng) {
+  try {
+    const response = await fetch(`${API_URL}/maps/stop-price`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ latitude: lat, longitude: lng })
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Failed to get price");
+
+    return data.price;
+  } catch (e) {
+    console.error("Price fetch failed:", e);
+    return null;
+  }
+}
+
+
   // Store markers globally so we can access them from saveTripToBackend
   window.tripMarkers = [];
   initializeMarkersFromTrip();
   
   //Event listeners
-  window.map.addListener("click", (event) => {
+  window.map.addListener("click", async (event) => {
     //PURELY FOR TESTING PURPOSES, TO BE REMOVED LATER
     const clickedLatLng = [event.latLng.lat().toFixed(4), event.latLng.lng().toFixed(4)];
     console.log("Clicked at " + clickedLatLng[0] + ", " + clickedLatLng[1]);
@@ -29,19 +49,37 @@ async function initMap() {
     latText.innerText = clickedLatLng[0];
     lngText.innerText = clickedLatLng[1];
 
+    //following code from ChatGPT to debug information not properly displaying
     if (window.tripMarkers.length <= 1) {
-      const stopList = document.getElementById("stops-list");
-      const newStop = document.createElement("li");
-      newStop.innerText = `Stop at (${clickedLatLng[0]}, ${clickedLatLng[1]})`;
-      stopList.appendChild(newStop);
+  const lat = event.latLng.lat();
+  const lng = event.latLng.lng();
 
-      window.tripMarkers.push(placeMarker(event.latLng));
-      panTo(event.latLng);
+  // Add marker first
+  const marker = placeMarker(event.latLng);
+  window.tripMarkers.push(marker);
 
-      if (window.tripMarkers.length == 2) {
-        drawRoute();
-      }
-    } else {
+  // Fetch price for this stop
+  const price = await fetchStopPrice(lat, lng);
+
+  // Update stop list UI
+  const stopList = document.getElementById("stops-list");
+  const newStop = document.createElement("li");
+  newStop.innerText = price !== null
+    ? `Stop at (${lat.toFixed(4)}, ${lng.toFixed(4)}): $${price}`
+    : `Stop at (${lat.toFixed(4)}, ${lng.toFixed(4)}) (price unavailable)`;
+  stopList.appendChild(newStop);
+
+  // Attach price to marker object for saveTripToBackend()
+  marker.stopPrice = price;
+
+  panTo(event.latLng);
+
+  if (window.tripMarkers.length == 2) {
+    drawRoute();
+  }
+}
+ 
+    else {
       console.log("Maximum of two stops reached");  
     }
   });
@@ -118,7 +156,7 @@ async function initializeMarkersFromTrip() {
   const current_trip_id = localStorage.getItem('current_trip_id');
 
   if (current_trip_id != -1) { //-1 means new trip
-    const trip = await fetchUserTrip(trip_id);
+    const trip = await fetchUserTrip(current_trip_id);
     if (!trip || !trip.stops) return;
 
     const stopList = document.getElementById("stops-list");
@@ -180,7 +218,7 @@ async function saveTripToBackend() {
     location: [marker.position.lat, marker.position.lng],
     type: 'MISC',  // Default type, can be enhanced later
     time: 0,       // Can be calculated or entered by user
-    cost: 0        // Can be calculated or entered by user
+    cost: marker.stopPrice ?? 0        // Can be calculated or entered by user
   }));
 
   // Prepare trip data
