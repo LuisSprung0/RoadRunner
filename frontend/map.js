@@ -37,54 +37,56 @@ async function initMap() {
   // Store markers globally so we can access them from saveTripToBackend
   window.trip = await fetchUserTrip(); //So we are not constantly fetching the trip (If there is a preexisting trip)
   window.tripMarkers = [];
-  let polyline = null;
+  window.polyline = null;
 
   if (window.trip) {
     initializeMarkersFromTrip(window.trip);
-    drawRoute();
+    window.polyline = await drawRoute();
   }
   
   //Event listeners
   window.map.addListener("click", async (event) => {
-    //PURELY FOR TESTING PURPOSES, TO BE REMOVED LATER
-    const clickedLatLng = [event.latLng.lat().toFixed(4), event.latLng.lng().toFixed(4)];
-    console.log("Clicked at " + clickedLatLng[0] + ", " + clickedLatLng[1]);
-
-    const latText = document.getElementById("lat");
-    const lngText = document.getElementById("lng");
-    latText.innerText = clickedLatLng[0];
-    lngText.innerText = clickedLatLng[1];
-
     //following code from ChatGPT to debug information not properly displaying
-    const lat = event.latLng.lat();
-    const lng = event.latLng.lng();
-
     // Add marker first
     const marker = placeMarker(event.latLng);
-    window.tripMarkers.push(marker);
 
     // Fetch price for this stop
-    const price = 0;//await fetchStopPrice(lat, lng);
+    const price = 0; //await fetchStopPrice(lat, lng);
+
+    // Attach price to marker object for saveTripToBackend()
+    marker.stopPrice = price;
+
+    window.tripMarkers.push(marker);
 
     // Update stop list UI
-    const stopList = document.getElementById("stops-list");
+    updateStopListUI();
+    panTo(event.latLng);
+
+    if (window.tripMarkers.length >= 2) {
+      if (window.polyline) {
+        window.polyline.setMap(null);
+        window.polyline = null;
+      }
+      window.polyline = await drawRoute();
+    }
+  });
+}
+
+function updateStopListUI() { //based off window.tripMarkers
+  const stopList = document.getElementById("stops-list");
+  stopList.innerHTML = ''; 
+
+  for (const marker of window.tripMarkers) {
+    const lat = marker.position.lat;
+    const lng = marker.position.lng;
+    const price = marker.stopPrice;
+
     const newStop = document.createElement("li");
     newStop.innerText = price !== null
       ? `Stop at (${lat.toFixed(4)}, ${lng.toFixed(4)}): $${price}`
       : `Stop at (${lat.toFixed(4)}, ${lng.toFixed(4)}) (price unavailable)`;
     stopList.appendChild(newStop);
-
-    // Attach price to marker object for saveTripToBackend()
-    marker.stopPrice = price;
-
-    panTo(event.latLng);
-
-    if (window.tripMarkers.length >= 2) {
-      if (polyline) 
-        polyline.map = null; //Remove old polyline
-      polyline = drawRoute();
-    }
-  });
+  }
 }
 
 async function drawRoute() { //Draws the route for the current markers
@@ -149,11 +151,33 @@ function placeMarker(latLng) {
 
   marker.addListener('click', ({ domEvent, latLng }) => {
     const infoWindow = new google.maps.InfoWindow();
-    const { target } = domEvent;
     infoWindow.close();
     infoWindow.setContent(marker.title);
     infoWindow.open(marker.map, marker);
   });
+
+  pin.element.addEventListener('contextmenu', (e) => { //right click to remove marker
+    try {
+      e.preventDefault();
+      marker.map = null;
+      window.tripMarkers = window.tripMarkers.filter(m => m !== marker);
+      updateStopListUI();
+
+      if (window.polyline) {
+        window.polyline.setMap(null);
+        window.polyline = null;
+      }
+
+      drawRoute().then(polyline => {
+        window.polyline = polyline;
+      }).catch(err => {
+        console.error("Error redrawing route after marker removal:", err);
+      });
+    } catch (e) {
+      console.error("Error handling context menu:", e);
+    }
+  });
+
   return marker;
 }
 

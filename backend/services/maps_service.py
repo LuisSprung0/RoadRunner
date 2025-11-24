@@ -40,10 +40,10 @@ class MapsService:
         if not directions_result:
             return None
         
-        route = directions_result[0] if directions_result else None
-        polyline = route['overview_polyline']['points'] if directions_result else None
+        route = directions_result[0]
+        polyline = route['overview_polyline']['points']
         total_distance = sum(leg['distance']['value'] for leg in route['legs']) if route else 0
-        total_duration = sum(leg['duration']['value'] for leg in route['legs'])
+        total_duration = sum(leg['duration']['value'] for leg in route['legs']) if route else 0
 
         return {'route': route, 
                 'polyline': polyline, 
