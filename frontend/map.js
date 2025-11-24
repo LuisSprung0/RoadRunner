@@ -89,8 +89,25 @@ function updateStopListUI() { //based off window.tripMarkers
   }
 }
 
+function updateEstimates(time, distance) {
+  const timeEl = document.getElementById("time");
+  const distanceEl = document.getElementById("distance");
+  console.log("Updating estimates:", time, distance);
+
+  let hours = Math.floor(time / 3600);
+  let mins = Math.floor(time / 60) % 60;
+
+  let miles = (distance*0.000621371).toFixed(1); //convert meters to miles
+
+  timeEl.innerText = hours != 0 ? `${hours} hours & ${mins} mins` : `${mins} mins`;
+  distanceEl.innerText = `${miles} miles`;
+}
+
 async function drawRoute() { //Draws the route for the current markers
-  if (window.tripMarkers.length < 2) return null;
+  if (window.tripMarkers.length < 2) {
+    updateEstimates(0, 0);
+    return null
+  };
 
   const response = await fetch(`${API_URL}/maps/directions`, {
     method: 'POST',
@@ -129,6 +146,9 @@ async function drawRoute() { //Draws the route for the current markers
     const bounds = new google.maps.LatLngBounds();
     decoded.forEach(latlng => bounds.extend(latlng));
     window.map.fitBounds(bounds);
+
+    updateEstimates(data['directions']['total_duration'], data['directions']['total_distance']);
+
     return polyline;
   } else {
     console.error("Failed to fetch directions:", data.error);
