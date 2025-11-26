@@ -56,6 +56,8 @@ if (loginForm) {
             
             if (response.ok) {
                 showMessage("Login successful!");
+                // Store user info in localStorage
+                localStorage.setItem('user_id', data.user.id);
                 localStorage.setItem('userEmail', data.user.email);
                 setTimeout(() => {
                     window.location.href = "trip_menu.html";

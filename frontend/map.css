@@ -1,17 +1,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Edu+NSW+ACT+Cursive:wght@400..700&display=swap');
 
+/* We need this for the map to appear, DO NOT DELETE */
+html {
+    height: 100%;
+    width: 100%;
+}
+
 body {
     height: 100%;
     width: 100%;
     margin: 0;
     padding: 0;
     background-image:url("images/mbg2.jpg");
+    display: flex;
+    overflow: hidden;
     z-index: -100;
     background-repeat: no-repeat;        
     background-size: cover;             
     background-position: center center; 
-    background-attachment: fixed;    
-
+    background-attachment: fixed;
 }
 
 #map {
@@ -37,6 +44,7 @@ body {
     flex-direction: column;
     justify-content: flex-start;
     align-items: center; 
+    overflow-y: auto;
 }
 
 .info-window {
@@ -51,6 +59,47 @@ body {
     /* max-height: 80%; */
     /* overflow-y: auto; */
     box-sizing: border-box;
+}
+
+#save-trip-section input,
+#save-trip-section textarea {
+    width: 90%;
+    padding: 8px;
+    margin: 8px 0;
+    border: 2px solid #ffbee1;
+    border-radius: 10px;
+    font-family: 'Edu NSW ACT Cursive', cursive;
+    color: #f07167;
+}
+
+#save-trip-section textarea {
+    min-height: 60px;
+    resize: vertical;
+}
+
+#save-trip-btn {
+    background-color: #f07167;
+    color: #fed9b7;
+    padding: 10px 20px;
+    border: 2px solid #ffbee1;
+    border-radius: 15px;
+    cursor: pointer;
+    font-family: 'Edu NSW ACT Cursive', cursive;
+    font-size: 16px;
+    font-weight: bold;
+    margin: 10px 0;
+    transition: all 0.3s ease;
+}
+
+#save-trip-btn:hover {
+    background-color: #fed9b7;
+    color: #f07167;
+    transform: scale(1.05);
+}
+
+#save-status {
+    font-weight: bold;
+    margin: 5px 0;
 }
 
 /* #sidebar h1 {

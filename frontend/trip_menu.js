@@ -1,7 +1,12 @@
 import {API_URL, showMessage} from './utils.js'
 
 try {
-    const response = await fetch(`${API_URL}/trips`, {
+    const user_id = localStorage.getItem('user_id');
+    if (!user_id) {
+        throw new Error("User not logged in");
+    }
+
+    const response = await fetch(`${API_URL}/trips/user/${user_id}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
     });
@@ -9,7 +14,7 @@ try {
 
     const tripList = document.getElementById('product-card-wrapper');
     if (response.ok) {
-        data.forEach(trip => {
+        data.trips.forEach(trip => {
             const tripDiv = createTripCard(trip); //Existing trips
             tripList.appendChild(tripDiv); 
         });
@@ -51,10 +56,7 @@ function createTripCard(trip) {
     tripCard.appendChild(openButton);
 
     //Maybe add a way to delete trips 
-    openButton.addEventListener('click', () => {
-        // Logic to open the trip
-        showMessage(`Opening trip: NOT YET IMPLEMENTED`);
-    }, false);
+    openButton.addEventListener('click', () => navigateToMap(trip.trip_id), false);
 
     return tripCard;
 }
@@ -84,10 +86,12 @@ function createNewTripCard() { //Allows user to create a new trip
     tripCard.appendChild(openButton);
 
     //Maybe add a way to delete trips 
-    openButton.addEventListener('click', () => {
-        // Logic to open the trip
-        showMessage(`New trip: NOT YET IMPLEMENTED`);
-    }, false);
+    openButton.addEventListener('click', () => navigateToMap(-1), false);
 
     return tripCard;
+}
+
+function navigateToMap(trip_id) {
+    localStorage.setItem('current_trip_id', trip_id);
+    window.location.href = "map.html";
 }
