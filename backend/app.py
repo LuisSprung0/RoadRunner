@@ -206,5 +206,25 @@ def get_directions():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# following code from ChatGPT to get prices for display
+@app.route('/api/maps/stop-price', methods=['POST'])
+def get_stop_price():
+    try:
+        data = request.get_json()
+        lat = data.get('latitude')
+        lng = data.get('longitude')
+
+        if lat is None or lng is None:
+            return jsonify({'error': 'Latitude and longitude are required'}), 400
+
+        # 🔥 EXAMPLE: you can replace this with real logic
+        price = MapsService.calculate_stop_price(lat, lng)
+
+        return jsonify({'price': price}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)
