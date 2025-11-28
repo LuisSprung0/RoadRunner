@@ -51,9 +51,7 @@ async function initMap() {
     const marker = placeMarker(event.latLng);
 
     // Fetch price for this stop
-    const lat = event.latLng.lat();
-    const lng = event.latLng.lng();
-    const price = await fetchStopPrice(lat, lng);
+    const price = 0; //await fetchStopPrice(lat, lng);
 
     // Attach price to marker object for saveTripToBackend()
     marker.stopPrice = price;
