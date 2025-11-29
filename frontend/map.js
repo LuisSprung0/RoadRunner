@@ -74,8 +74,8 @@ function updateStopListUI() { //based off window.tripMarkers
 
     const newStop = document.createElement("li");
     newStop.innerText = price !== null
-      ? `Stop at (${lat.toFixed(2)}, ${lng.toFixed(2)}): $${price}`
-      : `Stop at (${lat.toFixed(2)}, ${lng.toFixed(2)}) (price unavailable)`;
+      ? `Stop at (${lat.toFixed(4)}, ${lng.toFixed(4)}): $${price}`
+      : `Stop at (${lat.toFixed(4)}, ${lng.toFixed(4)}) (price unavailable)`;
     stopList.appendChild(newStop);
   }
 }
@@ -217,7 +217,7 @@ async function initializeMarkersFromTrip() {
   const stopList = document.getElementById("stops-list");
   trip.stops.forEach(stop => {
     const newStop = document.createElement("li");
-    newStop.innerText = `Stop at (${stop.location[0]}, ${stop.location[1]}): $${stop.cost}`;
+    newStop.innerText = `Stop at (${stop.location[0].toFixed(4)}, ${stop.location[1].toFixed(4)}): $${stop.cost}`;
 
     stopList.appendChild(newStop);
 
