@@ -31,7 +31,7 @@ async function initMap() {
     const marker = placeMarker(event.latLng);
 
     // Fetch price for this stop
-    const price = 10;
+    const price = 10;  //TODO: REPLACE WITH ACTUAL USER INPUTTED PRICE LOGIC
     // Attach price to marker object for saveTripToBackend()
     marker.stopPrice = price;
 
@@ -217,7 +217,8 @@ async function initializeMarkersFromTrip() {
   const stopList = document.getElementById("stops-list");
   trip.stops.forEach(stop => {
     const newStop = document.createElement("li");
-    newStop.innerText = `Stop at (${stop.location[0]}, ${stop.location[1]})`;
+    newStop.innerText = `Stop at (${stop.location[0]}, ${stop.location[1]}): $${stop.cost}`;
+
     stopList.appendChild(newStop);
 
     const latLng = new google.maps.LatLng(stop.location[0], stop.location[1]);
