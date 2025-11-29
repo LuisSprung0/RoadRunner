@@ -14,26 +14,6 @@ async function initMap() {
     mapId: "mapId",
   });
 
-  //following code from ChatGPT to debug information not properly displaying
-  async function fetchStopPrice(lat, lng) {
-    try {
-      const response = await fetch(`${API_URL}/maps/stop-price`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ latitude: lat, longitude: lng })
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Failed to get price");
-
-      return data.price;
-    } catch (e) {
-      console.error("Price fetch failed:", e);
-      return null;
-    }
-  }
-
-
   // Store markers globally so we can access them from saveTripToBackend
   window.trip = await fetchUserTrip(); //So we are not constantly fetching the trip (If there is a preexisting trip)
   window.tripMarkers = [];
@@ -83,16 +63,16 @@ function updateStopListUI() { //based off window.tripMarkers
 
     const newStop = document.createElement("li");
     newStop.innerText = price !== null
-      ? `Stop at (${lat.toFixed(4)}, ${lng.toFixed(4)}): $${price}`
-      : `Stop at (${lat.toFixed(4)}, ${lng.toFixed(4)}) (price unavailable)`;
+      ? `Stop at (${lat.toFixed(2)}, ${lng.toFixed(2)}): $${price}`
+      : `Stop at (${lat.toFixed(2)}, ${lng.toFixed(2)}) (price unavailable)`;
     stopList.appendChild(newStop);
   }
 }
 
 function updateEstimates(time, distance) {
+  //Updates time and distance estimates in the UI
   const timeEl = document.getElementById("time");
   const distanceEl = document.getElementById("distance");
-  console.log("Updating estimates:", time, distance);
 
   let hours = Math.floor(time / 3600);
   let mins = Math.floor(time / 60) % 60;
@@ -103,12 +83,13 @@ function updateEstimates(time, distance) {
   distanceEl.innerText = `${miles} miles`;
 }
 
-async function drawRoute() { //Draws the route for the current markers
+async function fetchDirections() {
   if (window.tripMarkers.length < 2) {
     updateEstimates(0, 0);
     return null
   };
 
+  try {
   const response = await fetch(`${API_URL}/maps/directions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -124,14 +105,30 @@ async function drawRoute() { //Draws the route for the current markers
       waypoints: window.tripMarkers.slice(1, -1).map(marker => ({
         latitude: marker.position.lat,
         longitude: marker.position.lng
-      }))
+        })),
+        mode: 'driving',
     })
   });
 
   const data = await response.json();
-
   if (response.ok) {
-    const encoded = data['directions']['polyline'];
+      return data['directions'];
+    } else {
+      throw new Error(data.error || 'Failed to fetch directions');
+    }
+  } catch (error) {
+    if (data.error == 'Unroutable location')
+      console.error("One or more locations are unroutable. Please adjust your markers.");
+    else
+      console.error("Failed to fetch directions:", data.error);
+  }
+}
+
+async function drawRoute(data=null) { //Draws the route for the current markers
+  if (data === null)
+    data = await fetchDirections();
+
+  const encoded = data['polyline'];
     const decoded = encoding.decodePath(encoded);
 
     const polyline = new google.maps.Polyline({
@@ -147,14 +144,9 @@ async function drawRoute() { //Draws the route for the current markers
     decoded.forEach(latlng => bounds.extend(latlng));
     window.map.fitBounds(bounds);
 
-    updateEstimates(data['directions']['total_duration'], data['directions']['total_distance']);
+  updateEstimates(data['total_duration'], data['total_distance']);
 
     return polyline;
-  } else {
-    console.error("Failed to fetch directions:", data.error);
-  }
-
-  return null;
 }
 
 function placeMarker(latLng) {
@@ -193,8 +185,8 @@ function placeMarker(latLng) {
       }).catch(err => {
         console.error("Error redrawing route after marker removal:", err);
       });
-    } catch (e) {
-      console.error("Error handling context menu:", e);
+    } catch (error) {
+      console.error("Error handling context menu:", error);
     }
   });
 
