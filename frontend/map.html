@@ -13,7 +13,10 @@
 
         <div class="info-window" id="trip-general-info">
             <h2>Trip Information</h2>
-            <!-- Maybe change to a start and end time in the future so users can pick -->
+            <form>
+              <input type="text" id="start-time" placeholder="Enter start time (HH:MM) military time"/>
+              <input type="button" id="calculate-travel-time" value="Calculate Travel Time" />
+            </form>
             <p>Estimated Time: <span id="time">N/A</span></p>
             <p>Estimated Distance: <span id="distance">N/A</span></p>
             <p>Estimated Cost: <span id="cost">N/A</span></p>
@@ -21,7 +24,6 @@
 
         <div class="info-window" id="trip-stop-info"> 
             <h2>Trip Stops</h2>
-            <!--TODO: temporary to test out adding markers-->
             <ul id="stops-list"></ul>
         </div>
 

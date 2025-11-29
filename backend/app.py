@@ -153,6 +153,7 @@ def add_stop(trip_id):
     
 @app.route('/api/maps/geocode', methods=['POST'])
 def geocode_address():
+    # Geocode an address to latitude and longitude
     try:
         data = request.get_json()
         address = data.get('address')
@@ -169,6 +170,7 @@ def geocode_address():
     
 @app.route('/api/maps/reverse_geocode', methods=['POST'])
 def reverse_geocode():
+    # Reverse geocode latitude and longitude to an address
     try:
         data = request.get_json()
         latitude = data.get('latitude')
@@ -187,6 +189,7 @@ def reverse_geocode():
     
 @app.route('/api/maps/directions', methods=['POST'])
 def get_directions():
+    # Returns route information like polyline, distance, duration, and route when given origin, destination, waypoints, mode, start time
     try:
         data = request.get_json()
         origin = data.get('origin')

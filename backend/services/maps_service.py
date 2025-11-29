@@ -28,14 +28,11 @@ class MapsService:
         return None
 
     @staticmethod
-    def get_directions(origin, destination, waypoints=[], mode='driving', departure_time=None):
-        if departure_time is None:
-            departure_time = datetime.now()
+    def get_directions(origin, destination, waypoints=[], mode='driving'):
         directions_result = gmaps.directions(origin,
                                             destination,
                                             waypoints=waypoints,
-                                            mode=mode,
-                                            departure_time=departure_time)
+                                            mode=mode)
         
         if not directions_result:
             return None
