@@ -1,10 +1,10 @@
-import {API_URL} from './utils.js'
+import {API_URL, showMessage} from './utils.js'
 // Request needed libraries.
 const { Map, InfoWindow} = await google.maps.importLibrary("maps");
 const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
 const { encoding, Polyline } = await google.maps.importLibrary("geometry");
 const bounds = new google.maps.LatLngBounds();
-
+let startTime = null;
 
 async function initMap() {
   const myLatlng = { lat: 38.9072, lng: -77.0369 }; // Washington, DC
@@ -31,8 +31,7 @@ async function initMap() {
     const marker = placeMarker(event.latLng);
 
     // Fetch price for this stop
-    const price = 0; //await fetchStopPrice(lat, lng);
-
+    const price = 10;
     // Attach price to marker object for saveTripToBackend()
     marker.stopPrice = price;
 
@@ -47,7 +46,19 @@ async function initMap() {
         window.polyline.setMap(null);
         window.polyline = null;
       }
-      window.polyline = await drawRoute();
+
+      try {
+        const directions = await fetchDirections();
+        window.polyline = await drawRoute(directions);
+
+        if (startTime) {
+          const arrivalTime = new Date(startTime.getTime() + directions['total_duration'] * 1000);
+          showMessage(`Estimated arrival time at final destination: 
+            ${arrivalTime.getHours().toString().padStart(2, '0')}:${arrivalTime.getMinutes().toString().padStart(2, '0')}`);
+        }
+      } catch (error) {
+        console.error("Error drawing route after adding marker:", error);
+      }
     }
   });
 }
@@ -90,28 +101,28 @@ async function fetchDirections() {
   };
 
   try {
-  const response = await fetch(`${API_URL}/maps/directions`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      origin: { //Could just be the address if you have it
-        latitude: window.tripMarkers[0].position.lat,
-        longitude: window.tripMarkers[0].position.lng
-      },
-      destination: {
-        latitude: window.tripMarkers[window.tripMarkers.length-1].position.lat,
-        longitude: window.tripMarkers[window.tripMarkers.length-1].position.lng
-      },
-      waypoints: window.tripMarkers.slice(1, -1).map(marker => ({
-        latitude: marker.position.lat,
-        longitude: marker.position.lng
+    const response = await fetch(`${API_URL}/maps/directions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        origin: { //Could just be the address if you have it
+          latitude: window.tripMarkers[0].position.lat,
+          longitude: window.tripMarkers[0].position.lng
+        },
+        destination: {
+          latitude: window.tripMarkers[window.tripMarkers.length-1].position.lat,
+          longitude: window.tripMarkers[window.tripMarkers.length-1].position.lng
+        },
+        waypoints: window.tripMarkers.slice(1, -1).map(marker => ({
+          latitude: marker.position.lat,
+          longitude: marker.position.lng
         })),
         mode: 'driving',
-    })
-  });
+      })
+    });
 
-  const data = await response.json();
-  if (response.ok) {
+    const data = await response.json();
+    if (response.ok) {
       return data['directions'];
     } else {
       throw new Error(data.error || 'Failed to fetch directions');
@@ -129,24 +140,24 @@ async function drawRoute(data=null) { //Draws the route for the current markers
     data = await fetchDirections();
 
   const encoded = data['polyline'];
-    const decoded = encoding.decodePath(encoded);
+  const decoded = encoding.decodePath(encoded);
 
-    const polyline = new google.maps.Polyline({
-      path: decoded,
-      geodesic: true,
-      strokeColor: "#4285F4",
-      strokeOpacity: 0.8,
-      strokeWeight: 6, 
-      map: window.map
-    });
+  const polyline = new google.maps.Polyline({
+    path: decoded,
+    geodesic: true,
+    strokeColor: "#4285F4",
+    strokeOpacity: 0.8,
+    strokeWeight: 6, 
+    map: window.map
+  });
 
-    const bounds = new google.maps.LatLngBounds();
-    decoded.forEach(latlng => bounds.extend(latlng));
-    window.map.fitBounds(bounds);
+  const bounds = new google.maps.LatLngBounds();
+  decoded.forEach(latlng => bounds.extend(latlng));
+  window.map.fitBounds(bounds);
 
   updateEstimates(data['total_duration'], data['total_distance']);
 
-    return polyline;
+  return polyline;
 }
 
 function placeMarker(latLng) {
@@ -320,4 +331,42 @@ async function saveTripToBackend() {
 // Event listener for save button
 document.getElementById('save-trip-btn').addEventListener('click', saveTripToBackend);
 
+//Calculates travel time based on user inputted start time
+const calculateTravelTimeBtn = document.getElementById('calculate-travel-time');
+const startTimeInput = document.getElementById('start-time');
+calculateTravelTimeBtn.addEventListener('click', async (e) => {
+  e.preventDefault();
+
+  const startTimeValue = startTimeInput.value.trim();
+
+  if (startTimeValue == '') {
+    startTime = null;
+    return;
+  }
+  
+  try {
+    const now = new Date();
+    const time = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      startTimeValue.split(":")[0],
+      startTimeValue.split(":")[1]
+    );
+
+    startTime = time;
+
+    if (window.tripMarkers.length >= 2) {
+      const directions = await fetchDirections();
+      const arrivalTime = new Date(startTime.getTime() + directions['total_duration'] * 1000);
+      showMessage(`Estimated arrival time at final destination: 
+        ${arrivalTime.getHours().toString().padStart(2, '0')}:${arrivalTime.getMinutes().toString().padStart(2, '0')}`);
+    }
+  } catch (error) {
+    console.log(error);
+    return;
+  }
+});
+
+//Initalizes map & trip
 initMap();
