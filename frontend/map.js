@@ -18,10 +18,13 @@ async function initMap() {
   window.trip = await fetchUserTrip(); //So we are not constantly fetching the trip (If there is a preexisting trip)
   window.tripMarkers = [];
   window.polyline = null;
+  const costEl = document.getElementById("cost");
 
   if (window.trip) {
     initializeMarkersFromTrip(window.trip);
     window.polyline = await drawRoute();
+
+    costEl.innerText = `$${trip.total_cost.toFixed(2)}`;
   }
   
   //Event listeners
@@ -81,17 +84,23 @@ function updateStopListUI() { //based off window.tripMarkers
 }
 
 function updateEstimates(time, distance) {
-  //Updates time and distance estimates in the UI
+  //Updates time, distance, and cost estimates in the UI
   const timeEl = document.getElementById("time");
   const distanceEl = document.getElementById("distance");
+  const costEl = document.getElementById("cost");
 
-  let hours = Math.floor(time / 3600);
-  let mins = Math.floor(time / 60) % 60;
+  const hours = Math.floor(time / 3600);
+  const mins = Math.floor(time / 60) % 60;
 
-  let miles = (distance*0.000621371).toFixed(1); //convert meters to miles
+  const miles = (distance*0.000621371).toFixed(1); //convert meters to miles
+
+  let totalCost = window.tripMarkers.reduce((sum, marker) => {
+    return sum + (marker.stopPrice || 0);
+  }, 0);
 
   timeEl.innerText = hours != 0 ? `${hours} hours & ${mins} mins` : `${mins} mins`;
   distanceEl.innerText = `${miles} miles`;
+  costEl.innerText = `$${totalCost.toFixed(2)}`;
 }
 
 async function fetchDirections() {
@@ -222,7 +231,9 @@ async function initializeMarkersFromTrip() {
     stopList.appendChild(newStop);
 
     const latLng = new google.maps.LatLng(stop.location[0], stop.location[1]);
-    window.tripMarkers.push(placeMarker(latLng));
+    const marker = placeMarker(latLng);
+    marker.stopPrice = stop.cost;
+    window.tripMarkers.push(marker);
   });
 }
 
