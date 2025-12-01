@@ -14,12 +14,17 @@
         <div class="info-window" id="trip-general-info">
             <h2>Trip Information</h2>
             <form>
-              <input type="text" id="start-time" placeholder="Enter start time (HH:MM) military time"/>
-              <input type="button" id="calculate-travel-time" value="Calculate Travel Time" />
+              <input type="text" id="start-time" class="userio" placeholder="Enter start time (HH:MM) military time"/>
+              <input type="button" id="calculate-travel-time" class="btn" value="Calculate Travel Time" />
             </form>
             <p>Estimated Time: <span id="time">N/A</span></p>
             <p>Estimated Distance: <span id="distance">N/A</span></p>
             <p>Estimated Cost: <span id="cost">N/A</span></p>
+            <p>Enter User-Estimated Cost (without the dollar sign, then hit enter): <span>
+              <form>
+              <input type="text" id="usr" class="userio" placeholder="Enter your estimated cost"/>
+            </form>
+            </span></p>
         </div>
 
         <div class="info-window" id="trip-stop-info"> 
