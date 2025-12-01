@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoadRunner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #ff8a8a 0%, #ff6b6b 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Edu NSW ACT Cursive', cursive, Arial, sans-serif;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 60px 40px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-width: 500px;
+        }
+        
+        h1 {
+            color: #ff8a8a;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        
+        .info {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        button {
+            padding: 14px 28px;
+            font-size: 16px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Edu NSW ACT Cursive', cursive;
+            font-weight: bold;
+            background-color: #ff8a8a;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #ff6b6b;
+        }
+        
+        .status {
+            margin-top: 30px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .status.ok {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>RoadRunner</h1>
+        <div class="info">
+            <p>To start the backend, run in terminal:</p>
+            <p style="font-family: monospace; margin-top: 10px; background: #f5f5f5; padding: 10px; border-radius: 5px;">
+                python backend/app.py
+            </p>
+        </div>
+        
+        <button onclick="window.location.href='login_page.html'">Go to Login</button>
+        
+        <div id="status" class="status">
+            Checking backend...
+        </div>
+    </div>
+
+    <script>
+        async function checkBackend() {
+            try {
+                const response = await fetch('http://localhost:5001/api/health', { timeout: 2000 });
+                if (response.ok) {
+                    document.getElementById('status').innerHTML = '✓ Backend is running';
+                    document.getElementById('status').classList.add('ok');
+                }
+            } catch (e) {
+                document.getElementById('status').innerHTML = '✗ Backend not running';
+                document.getElementById('status').classList.add('error');
+            }
+        }
+        
+        window.addEventListener('load', checkBackend);
+    </script>
+</body>
+</html>

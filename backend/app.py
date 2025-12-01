@@ -1,3 +1,5 @@
+# Run this file with: python app.py
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
@@ -6,7 +8,13 @@ from datetime import datetime
 from models.user import User
 from models.trip import Trip
 from models.stop import Stop, StopType
-from services.maps_service import MapsService
+
+try:
+    from services.maps_service import MapsService
+    MAPS_SERVICE_AVAILABLE = True
+except ValueError:
+    MAPS_SERVICE_AVAILABLE = False
+    MapsService = None
 
 app = Flask(__name__)
 # Enable CORS for all origins (including file://)
@@ -50,6 +58,88 @@ def login():
     
     #Password hashing happens in User class
     return User.get_from_db(email, password)
+
+@app.route('/api/admin/login', methods=['POST'])
+def admin_login():
+    """Admin login endpoint"""
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+    
+    if not email or not password:
+        return jsonify({'error': 'Email and password required'}), 400
+    
+    # Define admin credentials (can be moved to config/env in production)
+    ADMIN_EMAIL = 'admin@roadrunner.com'
+    ADMIN_PASSWORD = 'admin123'  # In production, use environment variables and proper hashing
+    
+    if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
+        return jsonify({
+            'message': 'Admin login successful',
+            'is_admin': True
+        }), 200
+    else:
+        return jsonify({'error': 'Invalid admin credentials'}), 401
+
+@app.route('/api/admin/users', methods=['GET'])
+def get_all_users():
+    """Get all users with their trips"""
+    try:
+        conn = sqlite3.connect('database.db')
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        # Get all users
+        users = cursor.execute('SELECT id, email FROM users ORDER BY id').fetchall()
+        
+        users_data = []
+        for user in users:
+            user_id = user['id']
+            user_email = user['email']
+            
+            # Get all trips for this user
+            trips = cursor.execute(
+                'SELECT id, name, description, image_url, created_at FROM trips WHERE user_id = ? ORDER BY created_at DESC',
+                (user_id,)
+            ).fetchall()
+            
+            trips_data = []
+            for trip in trips:
+                # Get stops for this trip
+                stops = cursor.execute(
+                    'SELECT latitude, longitude, stop_type, time_minutes, cost FROM stops WHERE trip_id = ? ORDER BY stop_order',
+                    (trip['id'],)
+                ).fetchall()
+                
+                trips_data.append({
+                    'trip_id': trip['id'],
+                    'name': trip['name'],
+                    'description': trip['description'],
+                    'image_url': trip['image_url'],
+                    'created_at': trip['created_at'],
+                    'stops': [
+                        {
+                            'latitude': s['latitude'],
+                            'longitude': s['longitude'],
+                            'type': s['stop_type'],
+                            'time': s['time_minutes'],
+                            'cost': s['cost']
+                        } for s in stops
+                    ],
+                    'total_cost': sum(s['cost'] for s in stops)
+                })
+            
+            users_data.append({
+                'user_id': user_id,
+                'email': user_email,
+                'trips': trips_data,
+                'trip_count': len(trips_data)
+            })
+        
+        conn.close()
+        return jsonify({'users': users_data}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/trips/save', methods=['POST'])
 def save_trip():
@@ -125,6 +215,9 @@ def get_trip(trip_id):
 def get_trip_directions(trip_id):
     """Get directions for a specific trip"""
     try:
+        if not MAPS_SERVICE_AVAILABLE:
+            return jsonify({'error': 'Maps service is not configured. Please set GOOGLE_MAPS_API_KEY in .env'}), 503
+        
         trip = Trip.get_from_db(trip_id)
         if not trip:
             return jsonify({'error': 'Trip not found'}), 404
@@ -155,6 +248,9 @@ def add_stop(trip_id):
 def geocode_address():
     # Geocode an address to latitude and longitude
     try:
+        if not MAPS_SERVICE_AVAILABLE:
+            return jsonify({'error': 'Maps service is not configured. Please set GOOGLE_MAPS_API_KEY in .env'}), 503
+        
         data = request.get_json()
         address = data.get('address')
         if not address:
@@ -172,6 +268,9 @@ def geocode_address():
 def reverse_geocode():
     # Reverse geocode latitude and longitude to an address
     try:
+        if not MAPS_SERVICE_AVAILABLE:
+            return jsonify({'error': 'Maps service is not configured. Please set GOOGLE_MAPS_API_KEY in .env'}), 503
+        
         data = request.get_json()
         latitude = data.get('latitude')
         longitude = data.get('longitude')
@@ -191,6 +290,9 @@ def reverse_geocode():
 def get_directions():
     # Returns route information like polyline, distance, duration, and route when given origin, destination, waypoints, mode, start time
     try:
+        if not MAPS_SERVICE_AVAILABLE:
+            return jsonify({'error': 'Maps service is not configured. Please set GOOGLE_MAPS_API_KEY in .env'}), 503
+        
         data = request.get_json()
         origin = data.get('origin')
         destination = data.get('destination')

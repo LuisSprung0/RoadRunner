@@ -2,18 +2,23 @@
 import os
 from datetime import datetime
 from dotenv import load_dotenv
-import googlemaps
 
-#loads in key from .env file to create gmaps client
 load_dotenv()
-GOOGLE_MAPS_API_KEY = os.getenv('SECRET_KEY')
-if not GOOGLE_MAPS_API_KEY:
-    raise ValueError("No GOOGLE_MAPS_API_KEY found")
-gmaps = googlemaps.Client(key=GOOGLE_MAPS_API_KEY)
+GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY')
+
+gmaps = None
+if GOOGLE_MAPS_API_KEY and GOOGLE_MAPS_API_KEY != 'your-api-key-here':
+    try:
+        import googlemaps
+        gmaps = googlemaps.Client(key=GOOGLE_MAPS_API_KEY)
+    except Exception as e:
+        print(f"Warning: Could not initialize Google Maps: {e}")
 
 class MapsService:
     @staticmethod
     def geocode(address):
+        if not gmaps:
+            return None
         result = gmaps.geocode(address)
         if result:
             location = result[0]['geometry']['location']
@@ -22,6 +27,8 @@ class MapsService:
 
     @staticmethod
     def reverse_geocode(latitude, longitude):
+        if not gmaps:
+            return None
         result = gmaps.reverse_geocode((latitude, longitude))
         if result:
             return result[0]['formatted_address']
@@ -29,6 +36,8 @@ class MapsService:
 
     @staticmethod
     def get_directions(origin, destination, waypoints=[], mode='driving'):
+        if not gmaps:
+            return None
         directions_result = gmaps.directions(origin,
                                             destination,
                                             waypoints=waypoints,
@@ -44,8 +53,8 @@ class MapsService:
 
         return {'route': route, 
                 'polyline': polyline, 
-                'total_distance': total_distance, #in meters
-                'total_duration': total_duration} #in seconds
+                'total_distance': total_distance,
+                'total_duration': total_duration}
     
 if __name__ == "__main__":
     # Example usage
