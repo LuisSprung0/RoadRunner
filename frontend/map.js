@@ -176,43 +176,66 @@ async function fetchDirections() {
   };
 
   try {
+    // Get coordinates - AdvancedMarkerElement stores position as LatLng or LatLngLiteral
+    const getCoords = (marker) => {
+      const pos = marker.position;
+      // Check if it's a LatLng object with lat/lng methods
+      if (pos && typeof pos.lat === 'function') {
+        return { latitude: pos.lat(), longitude: pos.lng() };
+      }
+      // Check if it's a LatLngLiteral object with lat/lng properties
+      if (pos && typeof pos.lat === 'number') {
+        return { latitude: pos.lat, longitude: pos.lng };
+      }
+      // Fallback - try toJSON() if available
+      if (pos && typeof pos.toJSON === 'function') {
+        const json = pos.toJSON();
+        return { latitude: json.lat, longitude: json.lng };
+      }
+      console.error("Could not extract coordinates from marker:", marker);
+      return { latitude: 0, longitude: 0 };
+    };
+
+    const originCoords = getCoords(window.tripMarkers[0]);
+    const destCoords = getCoords(window.tripMarkers[window.tripMarkers.length-1]);
+    
+    console.log("Origin:", originCoords);
+    console.log("Destination:", destCoords);
+
     const response = await fetch(`${API_URL}/maps/directions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        origin: { //Could just be the address if you have it
-          latitude: window.tripMarkers[0].position.lat,
-          longitude: window.tripMarkers[0].position.lng
-        },
-        destination: {
-          latitude: window.tripMarkers[window.tripMarkers.length-1].position.lat,
-          longitude: window.tripMarkers[window.tripMarkers.length-1].position.lng
-        },
-        waypoints: window.tripMarkers.slice(1, -1).map(marker => ({
-          latitude: marker.position.lat,
-          longitude: marker.position.lng
-        })),
+        origin: originCoords,
+        destination: destCoords,
+        waypoints: window.tripMarkers.slice(1, -1).map(marker => getCoords(marker)),
         mode: 'driving',
       })
     });
 
     const data = await response.json();
-    if (response.ok) {
-      return data['directions'];
+    console.log("Directions API response:", data);
+    
+    if (response.ok && data.directions) {
+      return data.directions;
     } else {
       throw new Error(data.error || 'Failed to fetch directions');
     }
   } catch (error) {
-    if (data.error == 'Unroutable location')
-      console.error("One or more locations are unroutable. Please adjust your markers.");
-    else
-      console.error("Failed to fetch directions:", data.error);
+    console.error("Failed to fetch directions:", error);
+    return null;
   }
 }
 
 async function drawRoute(data=null) { //Draws the route for the current markers
   if (data === null)
     data = await fetchDirections();
+
+  // Check if we have valid data
+  if (!data || !data['polyline']) {
+    console.error("No valid route data received");
+    return null;
+  }
 
   const encoded = data['polyline'];
   const decoded = encoding.decodePath(encoded);
@@ -555,8 +578,14 @@ function displayPlaceMarker(place, bounds) {
 function filterPlacesByType(placeType) {
   currentFilterType = placeType;
   
-  // Clear previous search markers
-  searchMarkers.forEach(marker => marker.map = null);
+  // Clear previous search markers - use setMap(null) for google.maps.Marker objects
+  searchMarkers.forEach(marker => {
+    if (marker.setMap) {
+      marker.setMap(null);
+    } else {
+      marker.map = null;
+    }
+  });
   searchMarkers = [];
   
   // Search for places of this type near map center
@@ -587,12 +616,21 @@ function filterPlacesByType(placeType) {
 }
 
 function clearFilters() {
-  // Clear search markers
-  searchMarkers.forEach(marker => marker.map = null);
+  // Clear search markers - use setMap(null) for google.maps.Marker objects
+  searchMarkers.forEach(marker => {
+    if (marker.setMap) {
+      marker.setMap(null);
+    } else {
+      marker.map = null;  // For AdvancedMarkerElement
+    }
+  });
   searchMarkers = [];
   
   // Clear search input
-  document.getElementById('pac-input').value = '';
+  const searchInput = document.getElementById('pac-input');
+  if (searchInput) {
+    searchInput.value = '';
+  }
   
   // Reset filter buttons
   document.querySelectorAll('.filter-btn').forEach(btn => {

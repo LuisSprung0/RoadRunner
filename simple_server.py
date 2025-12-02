@@ -212,6 +212,10 @@ def get_directions():
         waypoints = data.get('waypoints', [])
         mode = data.get('mode', 'driving')
         
+        print(f"DEBUG - Origin: {origin}")
+        print(f"DEBUG - Destination: {destination}")
+        print(f"DEBUG - Waypoints: {waypoints}")
+        
         # Build waypoints list for googlemaps client
         waypoint_list = []
         if waypoints:
@@ -225,6 +229,8 @@ def get_directions():
             waypoints=waypoint_list,
             mode=mode
         )
+        
+        print(f"DEBUG - Directions result: {directions is not None}")
         
         if directions:
             return jsonify({
