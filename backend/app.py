@@ -20,6 +20,10 @@ app = Flask(__name__)
 # Enable CORS for all origins (including file://)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
+# Register blueprints
+app.register_blueprint(trips_bp)
+app.register_blueprint(budget_bp)
+
 # Database helper functions
 def get_db_connection():
     conn = sqlite3.connect('database.db')
@@ -236,13 +240,6 @@ def get_trip_directions(trip_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/app/trips/<int:trip_id>/add_stop', methods=['POST'])
-def add_stop(trip_id):
-    try:
-        data = request.get_json()
-        return jsonify({'message': 'Add stop endpoint - to be implemented'}), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
     
 @app.route('/api/maps/geocode', methods=['POST'])
 def geocode_address():

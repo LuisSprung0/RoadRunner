@@ -7,6 +7,45 @@
   
   <body>
     <div id="map"></div>
+    
+    <!-- Filter Buttons - positioned over the map (like Google Maps) -->
+    <div id="filter-buttons" style="
+      position: absolute;
+      top: 60px;
+      left: 10px;
+      z-index: 5;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      max-width: 500px;
+    ">
+      <button class="filter-btn" data-type="restaurant" style="background: white; padding: 8px 12px; border: 1px solid #ddd; border-radius: 20px; cursor: pointer; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s;">🍽️ Restaurants</button>
+      <button class="filter-btn" data-type="cafe" style="background: white; padding: 8px 12px; border: 1px solid #ddd; border-radius: 20px; cursor: pointer; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s;">☕ Coffee</button>
+      <button class="filter-btn" data-type="gas_station" style="background: white; padding: 8px 12px; border: 1px solid #ddd; border-radius: 20px; cursor: pointer; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s;">⛽ Gas</button>
+      <button class="filter-btn" data-type="grocery_or_supermarket" style="background: white; padding: 8px 12px; border: 1px solid #ddd; border-radius: 20px; cursor: pointer; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s;">🛒 Groceries</button>
+      <button class="filter-btn" data-type="shopping_mall" style="background: white; padding: 8px 12px; border: 1px solid #ddd; border-radius: 20px; cursor: pointer; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s;">🛍️ Shopping</button>
+      <button class="filter-btn" data-type="lodging" style="background: white; padding: 8px 12px; border: 1px solid #ddd; border-radius: 20px; cursor: pointer; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s;">🏨 Hotels</button>
+      <button class="filter-btn" data-type="tourist_attraction" style="background: white; padding: 8px 12px; border: 1px solid #ddd; border-radius: 20px; cursor: pointer; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s;">🎭 Attractions</button>
+      <button class="filter-btn" data-type="park" style="background: white; padding: 8px 12px; border: 1px solid #ddd; border-radius: 20px; cursor: pointer; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s;">🌳 Parks</button>
+      <button id="clear-filters" style="background: #f0f0f0; padding: 8px 12px; border: 1px solid #ddd; border-radius: 20px; cursor: pointer; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s;">✕ Clear</button>
+    </div>
+    
+    <!-- Google Maps SearchBox - positioned over the map -->
+    <input type="text" id="pac-input" placeholder="Search places..." style="
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 400px;
+      max-width: 90%;
+      padding: 12px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      z-index: 5;
+      background-color: white;
+    "/>
 
     <div id="sidebar"> 
         <h1>Road Runner Trip Planner</h1>
@@ -14,12 +53,17 @@
         <div class="info-window" id="trip-general-info">
             <h2>Trip Information</h2>
             <form>
-              <input type="text" id="start-time" placeholder="Enter start time (HH:MM) military time"/>
-              <input type="button" id="calculate-travel-time" value="Calculate Travel Time" />
+              <input type="text" id="start-time" class="userio" placeholder="Enter start time (HH:MM) military time"/>
+              <input type="button" id="calculate-travel-time" class="btn" value="Calculate Travel Time" />
             </form>
             <p>Estimated Time: <span id="time">N/A</span></p>
             <p>Estimated Distance: <span id="distance">N/A</span></p>
             <p>Estimated Cost: <span id="cost">N/A</span></p>
+            <p>Enter User-Estimated Cost (without the dollar sign, then hit enter): <span>
+              <form>
+              <input type="text" id="usr" class="userio" placeholder="Enter your estimated cost"/>
+            </form>
+            </span></p>
         </div>
 
         <div class="info-window" id="trip-stop-info"> 
@@ -36,8 +80,33 @@
         </div>
     </div>
 
-    <script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
-        ({key: GOOGLE_MAPS_API_KEY, v: "beta"});</script> <!--REPLACE GOOGLE_MAPS_API_KEY-->
-    <script type="module" src="map.js"></script>
+    <script>
+      // Load Google Maps API with key from backend
+      async function loadGoogleMaps() {
+        try {
+          const response = await fetch('/api/config/google-maps-key');
+          const config = await response.json();
+          const script = document.createElement('script');
+          script.src = `https://maps.googleapis.com/maps/api/js?key=${config.key}&v=beta&libraries=maps,marker,geometry,places`;
+          script.async = true;
+          script.defer = true;
+          return new Promise((resolve, reject) => {
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+        } catch (error) {
+          console.error('Failed to load Google Maps:', error);
+        }
+      }
+      
+      // Load maps API first, then load map.js
+      loadGoogleMaps().then(() => {
+        const mapScript = document.createElement('script');
+        mapScript.type = 'module';
+        mapScript.src = 'map.js';
+        document.body.appendChild(mapScript);
+      });
+    </script>
   </body>
 </html>
