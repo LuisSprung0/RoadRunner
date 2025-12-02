@@ -6,10 +6,14 @@ import googlemaps
 
 #loads in key from .env file to create gmaps client
 load_dotenv()
-GOOGLE_MAPS_API_KEY = os.getenv('SECRET_KEY')
+GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY')
 if not GOOGLE_MAPS_API_KEY:
-    raise ValueError("No GOOGLE_MAPS_API_KEY found")
-gmaps = googlemaps.Client(key=GOOGLE_MAPS_API_KEY)
+    raise ValueError("No GOOGLE_MAPS_API_KEY found in .env file")
+try:
+    gmaps = googlemaps.Client(key=GOOGLE_MAPS_API_KEY)
+except Exception as e:
+    print(f"Warning: Could not initialize Google Maps client. Error: {e}")
+    gmaps = None
 
 class MapsService:
     @staticmethod

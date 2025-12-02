@@ -56,7 +56,7 @@ function createTripCard(trip) {
     tripCard.appendChild(openButton);
 
     //Maybe add a way to delete trips 
-    openButton.addEventListener('click', () => navigateToMap(trip.trip_id), false);
+    openButton.addEventListener('click', () => navigateToMap(trip.id), false);
 
     return tripCard;
 }
