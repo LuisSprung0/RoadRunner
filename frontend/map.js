@@ -84,17 +84,86 @@ function updateStopListUI() { //based off window.tripMarkers
   const stopList = document.getElementById("stops-list");
   stopList.innerHTML = ''; 
 
-  for (const marker of window.tripMarkers) {
-    const lat = marker.position.lat;
-    const lng = marker.position.lng;
+  window.tripMarkers.forEach((marker, index) => {
+    const lat = typeof marker.position.lat === 'function' ? marker.position.lat() : marker.position.lat;
+    const lng = typeof marker.position.lng === 'function' ? marker.position.lng() : marker.position.lng;
     const price = marker.stopPrice;
 
     const newStop = document.createElement("li");
-    newStop.innerText = price !== null
-      ? `Stop at (${lat.toFixed(4)}, ${lng.toFixed(4)}): $${price}`
-      : `Stop at (${lat.toFixed(4)}, ${lng.toFixed(4)}) (price unavailable)`;
+    newStop.className = "stop-item";
+    
+    const stopText = document.createElement("span");
+    stopText.className = "stop-text";
+    stopText.innerText = price !== null
+      ? `Stop ${index + 1}: (${lat.toFixed(4)}, ${lng.toFixed(4)}) - $${price}`
+      : `Stop ${index + 1}: (${lat.toFixed(4)}, ${lng.toFixed(4)}) (price unavailable)`;
+    
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "delete-stop-btn";
+    deleteBtn.innerText = "✕";
+    deleteBtn.title = "Remove this stop";
+    deleteBtn.onclick = () => removeStop(index);
+    
+    newStop.appendChild(stopText);
+    newStop.appendChild(deleteBtn);
     stopList.appendChild(newStop);
+  });
+}
+
+async function removeStop(index, stopId = null) {
+  // Remove marker from map
+  const marker = window.tripMarkers[index];
+  if (marker) {
+    if (marker.setMap) {
+      marker.setMap(null);
+    } else if (marker.map) {
+      marker.map = null;
+    }
   }
+  
+  // Remove from tripMarkers array
+  window.tripMarkers.splice(index, 1);
+  
+  // If this is a saved trip with a database ID, delete from backend
+  if (stopId) {
+    try {
+      const response = await fetch(`${API_URL}/stops/${stopId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to delete stop from database');
+      }
+    } catch (error) {
+      console.error('Error deleting stop:', error);
+    }
+  }
+  
+  // Update the UI
+  updateStopListUI();
+  
+  // Update cost display
+  const costEl = document.getElementById("cost");
+  const totalCost = window.tripMarkers.reduce((sum, m) => sum + (m.stopPrice || 0), 0);
+  costEl.innerText = `$${totalCost.toFixed(2)}`;
+  
+  // Redraw route if we have 2+ stops
+  if (window.polyline) {
+    window.polyline.setMap(null);
+    window.polyline = null;
+  }
+  
+  if (window.tripMarkers.length >= 2) {
+    try {
+      const directions = await fetchDirections();
+      window.polyline = await drawRoute(directions);
+    } catch (error) {
+      console.error("Error redrawing route after removing stop:", error);
+    }
+  }
+  
+  showMessage(`Stop removed`);
 }
 
 async function calculateTripBudget() {
@@ -273,10 +342,24 @@ function placeMarker(latLng) {
     gmpClickable: true,
   });
 
+  const infoWindow = new google.maps.InfoWindow();
+  
   marker.addListener('click', ({ domEvent, latLng }) => {
-    const infoWindow = new google.maps.InfoWindow();
+    // Find the index of this marker in tripMarkers
+    const markerIndex = window.tripMarkers.indexOf(marker);
+    const stopId = marker.stopId || null; // Database ID if exists
+    
     infoWindow.close();
-    infoWindow.setContent(marker.title);
+    infoWindow.setContent(`
+      <div style="padding: 10px; min-width: 150px; text-align: center;">
+        <strong>${marker.title}</strong><br/>
+        ${marker.stopPrice ? `Cost: $${marker.stopPrice}` : ''}<br/>
+        <button onclick="window.removeStopFromMap(${markerIndex}, ${stopId})" 
+                style="margin-top: 10px; padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+          ✕ Remove Stop
+        </button>
+      </div>
+    `);
     infoWindow.open(marker.map, marker);
   });
 
@@ -319,20 +402,34 @@ async function initializeMarkersFromTrip() {
   
   // Check if stops exist and are in the right format
   if (trip.stops && Array.isArray(trip.stops)) {
-    trip.stops.forEach(stop => {
+    trip.stops.forEach((stop, index) => {
       // Stops from database have latitude/longitude fields
       const lat = stop.latitude || stop.location[0];
       const lng = stop.longitude || stop.location[1];
       const cost = stop.cost || 0;
+      const stopId = stop.id; // Database ID for deletion
       
       const newStop = document.createElement("li");
-      newStop.innerText = `Stop at (${lat.toFixed(4)}, ${lng.toFixed(4)}): $${cost}`;
-
+      newStop.className = "stop-item";
+      
+      const stopText = document.createElement("span");
+      stopText.className = "stop-text";
+      stopText.innerText = `Stop ${index + 1}: (${lat.toFixed(4)}, ${lng.toFixed(4)}) - $${cost}`;
+      
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "delete-stop-btn";
+      deleteBtn.innerText = "✕";
+      deleteBtn.title = "Remove this stop";
+      deleteBtn.onclick = () => removeStop(index, stopId);
+      
+      newStop.appendChild(stopText);
+      newStop.appendChild(deleteBtn);
       stopList.appendChild(newStop);
 
       const latLng = new google.maps.LatLng(lat, lng);
       const marker = placeMarker(latLng);
       marker.stopPrice = cost;
+      marker.stopId = stopId; // Store database ID on marker
       window.tripMarkers.push(marker);
     });
   }
@@ -512,8 +609,14 @@ async function initSearchBox() {
     
     if (places.length === 0) return;
     
-    // Clear previous search markers
-    searchMarkers.forEach(marker => marker.map = null);
+    // Clear previous search markers - use setMap(null) for google.maps.Marker
+    searchMarkers.forEach(marker => {
+      if (marker.setMap) {
+        marker.setMap(null);
+      } else {
+        marker.map = null;
+      }
+    });
     searchMarkers = [];
     
     const bounds = new google.maps.LatLngBounds();
@@ -616,12 +719,18 @@ function filterPlacesByType(placeType) {
 }
 
 function clearFilters() {
+  console.log('Clearing filters, markers count:', searchMarkers.length);
+  
   // Clear search markers - use setMap(null) for google.maps.Marker objects
   searchMarkers.forEach(marker => {
-    if (marker.setMap) {
-      marker.setMap(null);
-    } else {
-      marker.map = null;  // For AdvancedMarkerElement
+    try {
+      if (marker.setMap) {
+        marker.setMap(null);
+      } else if (marker.map !== undefined) {
+        marker.map = null;  // For AdvancedMarkerElement
+      }
+    } catch (e) {
+      console.error('Error removing marker:', e);
     }
   });
   searchMarkers = [];
@@ -667,8 +776,14 @@ function addPlaceAsStop(place) {
   listItem.innerText = `${place.name}: $${defaultPrice}`;
   stopList.appendChild(listItem);
   
-  // Remove search markers
-  searchMarkers.forEach(m => m.map = null);
+  // Remove search markers - use setMap(null) for google.maps.Marker
+  searchMarkers.forEach(m => {
+    if (m.setMap) {
+      m.setMap(null);
+    } else {
+      m.map = null;
+    }
+  });
   searchMarkers = [];
   
   showMessage(`✅ Added "${place.name}" as a stop!`, false);
@@ -681,6 +796,17 @@ window.addPlaceAsStopFromInfoWindow = function(name, lat, lng) {
     geometry: { location: new google.maps.LatLng(lat, lng) }
   };
   addPlaceAsStop(place);
+};
+
+// Global function to remove a stop from the map (called from info window button)
+window.removeStopFromMap = async function(markerIndex, stopId) {
+  if (markerIndex < 0 || markerIndex >= window.tripMarkers.length) {
+    console.error('Invalid marker index:', markerIndex);
+    return;
+  }
+  
+  // Call the existing removeStop function
+  await removeStop(markerIndex, stopId);
 };
 
 // Event listeners for filter buttons

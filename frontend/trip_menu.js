@@ -31,6 +31,7 @@ try {
 function createTripCard(trip) {
     const tripCard = document.createElement('div');
     tripCard.className = 'product-card';
+    tripCard.id = `trip-card-${trip.id}`;
 
     const tripImage = document.createElement('img');
     tripImage.className = 'product-card-image';
@@ -50,13 +51,26 @@ function createTripCard(trip) {
     tripDescription.innerText = trip.description || 'No description available.';
     tripCard.appendChild(tripDescription);
 
+    // Button container for Open and Delete buttons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.className = 'button-container';
+
     const openButton = document.createElement('button');
     openButton.className = 'submit-button';
     openButton.innerText = 'Open Trip';
-    tripCard.appendChild(openButton);
-
-    //Maybe add a way to delete trips 
     openButton.addEventListener('click', () => navigateToMap(trip.id), false);
+    buttonContainer.appendChild(openButton);
+
+    const deleteButton = document.createElement('button');
+    deleteButton.className = 'delete-button';
+    deleteButton.innerHTML = '<i class="fas fa-trash"></i> Delete';
+    deleteButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteTrip(trip.id, trip.name);
+    }, false);
+    buttonContainer.appendChild(deleteButton);
+
+    tripCard.appendChild(buttonContainer);
 
     return tripCard;
 }
@@ -94,4 +108,35 @@ function createNewTripCard() { //Allows user to create a new trip
 function navigateToMap(trip_id) {
     localStorage.setItem('current_trip_id', trip_id);
     window.location.href = "map.html";
+}
+
+async function deleteTrip(tripId, tripName) {
+    // Confirm before deleting
+    const confirmed = confirm(`Are you sure you want to delete "${tripName}"?\n\nThis will permanently remove the trip and all its stops.`);
+    
+    if (!confirmed) return;
+    
+    try {
+        const response = await fetch(`${API_URL}/trips/${tripId}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (response.ok) {
+            // Remove the card from the DOM
+            const tripCard = document.getElementById(`trip-card-${tripId}`);
+            if (tripCard) {
+                tripCard.style.transition = 'all 0.3s ease';
+                tripCard.style.opacity = '0';
+                tripCard.style.transform = 'scale(0.8)';
+                setTimeout(() => tripCard.remove(), 300);
+            }
+            showMessage(`Trip "${tripName}" deleted successfully`);
+        } else {
+            const data = await response.json();
+            showMessage(`Failed to delete trip: ${data.error || 'Unknown error'}`, true);
+        }
+    } catch (error) {
+        showMessage(`Error deleting trip: ${error.message}`, true);
+    }
 }

@@ -199,6 +199,42 @@ def delete_trip(trip_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/stops/<int:stop_id>', methods=['DELETE'])
+def delete_stop(stop_id):
+    """Delete a single stop from a trip"""
+    try:
+        conn = get_backend_db()
+        cursor = conn.cursor()
+        
+        # Get the trip_id before deleting
+        stop = cursor.execute('SELECT trip_id, stop_order FROM stops WHERE id = ?', (stop_id,)).fetchone()
+        if not stop:
+            conn.close()
+            return jsonify({'success': False, 'error': 'Stop not found'}), 404
+        
+        trip_id = stop['trip_id']
+        deleted_order = stop['stop_order']
+        
+        # Delete the stop
+        cursor.execute('DELETE FROM stops WHERE id = ?', (stop_id,))
+        
+        # Reorder remaining stops
+        cursor.execute('''
+            UPDATE stops 
+            SET stop_order = stop_order - 1 
+            WHERE trip_id = ? AND stop_order > ?
+        ''', (trip_id, deleted_order))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Stop deleted successfully'
+        }), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # Maps API Routes (integrated from backend)
 @app.route('/api/maps/directions', methods=['POST'])
 def get_directions():

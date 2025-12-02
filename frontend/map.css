@@ -131,3 +131,49 @@ body {
     font-family: 'Edu NSW ACT Cursive', cursive;
     color: #f07167;
 }
+
+/* Stop list styles */
+#stops-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.stop-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    margin: 5px 0;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
+    border: 1px solid #ffbee1;
+}
+
+.stop-text {
+    flex: 1;
+    font-size: 14px;
+    text-align: left;
+}
+
+.delete-stop-btn {
+    background-color: #ff6b6b;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 10px;
+    transition: all 0.2s ease;
+}
+
+.delete-stop-btn:hover {
+    background-color: #ff4444;
+    transform: scale(1.1);
+}
