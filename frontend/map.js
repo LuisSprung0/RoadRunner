@@ -34,9 +34,21 @@ async function initMap() {
     const marker = placeMarker(event.latLng);
 
     // Fetch price for this stop
-    const price = 10;  //TODO: REPLACE WITH ACTUAL USER INPUTTED PRICE LOGIC
+    let price = 10;  //TODO: REPLACE WITH ACTUAL USER INPUTTED PRICE LOGIC
+    let userInput = "";
+    const userCost = document.getElementById("usr");
     // Attach price to marker object for saveTripToBackend()
+    userCost.addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+        price = parseInt(userInput)
+        userInput = ""; // reset after Enter
+    } else if (event.key.length === 1) { 
+        // Only add printable characters
+        userInput += event.key;
+    }
+});
     marker.stopPrice = price;
+    console.log(price);
 
     window.tripMarkers.push(marker);
 

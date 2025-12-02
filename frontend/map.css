@@ -97,11 +97,37 @@ body {
     transform: scale(1.05);
 }
 
+.btn {
+    background-color: #f07167;
+    color: #fed9b7;
+    padding: 10px 20px;
+    border: 2px solid #ffbee1;
+    border-radius: 15px;
+    cursor: pointer;
+    font-family: 'Edu NSW ACT Cursive', cursive;
+    font-size: 16px;
+    font-weight: bold;
+    margin: 10px 0;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    background-color: #fed9b7;
+    color: #f07167;
+    transform: scale(1.05);
+}
+
 #save-status {
     font-weight: bold;
     margin: 5px 0;
 }
 
-/* #sidebar h1 {
-    color: #fdfdcd;
-} */
+.userio {
+    width: 90%;
+    padding: 8px;
+    margin: 8px 0;
+    border: 2px solid #ffbee1;
+    border-radius: 10px;
+    font-family: 'Edu NSW ACT Cursive', cursive;
+    color: #f07167;
+}
