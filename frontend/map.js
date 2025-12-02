@@ -80,6 +80,7 @@ async function initMap() {
   });
 }
 
+// AI-ASSISTED: GitHub Copilot - Updated to add delete buttons with coordinate extraction handling
 function updateStopListUI() { //based off window.tripMarkers
   const stopList = document.getElementById("stops-list");
   stopList.innerHTML = ''; 
@@ -110,6 +111,7 @@ function updateStopListUI() { //based off window.tripMarkers
   });
 }
 
+// AI-ASSISTED: GitHub Copilot - Complete function for removing stops from map, database, and UI
 async function removeStop(index, stopId = null) {
   // Remove marker from map
   const marker = window.tripMarkers[index];
@@ -330,6 +332,7 @@ async function drawRoute(data=null) { //Draws the route for the current markers
   return polyline;
 }
 
+// AI-ASSISTED: GitHub Copilot - Enhanced with info window containing Remove Stop button
 function placeMarker(latLng) {
   const pin = new google.maps.marker.PinElement({
     scale: 1.5,
@@ -394,6 +397,7 @@ function panTo(latLng, zoomLevel) {
     window.map.setZoom(8);
 }
 
+// AI-ASSISTED: GitHub Copilot - Updated to include delete buttons and store database IDs
 async function initializeMarkersFromTrip() {
   if (!window.trip) return;
 
@@ -718,6 +722,7 @@ function filterPlacesByType(placeType) {
   });
 }
 
+// AI-ASSISTED: GitHub Copilot - Enhanced with debug logging and proper marker clearing
 function clearFilters() {
   console.log('Clearing filters, markers count:', searchMarkers.length);
   
@@ -798,7 +803,7 @@ window.addPlaceAsStopFromInfoWindow = function(name, lat, lng) {
   addPlaceAsStop(place);
 };
 
-// Global function to remove a stop from the map (called from info window button)
+// AI-ASSISTED: GitHub Copilot - Global function for info window button to call removeStop
 window.removeStopFromMap = async function(markerIndex, stopId) {
   if (markerIndex < 0 || markerIndex >= window.tripMarkers.length) {
     console.error('Invalid marker index:', markerIndex);

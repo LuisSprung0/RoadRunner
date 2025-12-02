@@ -107,7 +107,7 @@ body {
     box-shadow: 0px 4px 8px #131212;
 }
 
-/* Button container for trip cards */
+/* AI-ASSISTED: GitHub Copilot - Button container and delete button styles */
 .button-container {
     display: flex;
     flex-direction: column;
@@ -116,7 +116,6 @@ body {
     margin-top: 10px;
 }
 
-/* Delete button styling */
 .delete-button {
     background-color: #dc3545;
     padding: 10px 20px;

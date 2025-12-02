@@ -28,6 +28,7 @@ try {
     showMessage("Error: " + error.message, true);
 }
 
+// AI-ASSISTED: GitHub Copilot - Updated to include delete button with trash icon
 function createTripCard(trip) {
     const tripCard = document.createElement('div');
     tripCard.className = 'product-card';
@@ -110,6 +111,7 @@ function navigateToMap(trip_id) {
     window.location.href = "map.html";
 }
 
+// AI-ASSISTED: GitHub Copilot - Complete function for deleting trips with confirmation and animation
 async function deleteTrip(tripId, tripName) {
     // Confirm before deleting
     const confirmed = confirm(`Are you sure you want to delete "${tripName}"?\n\nThis will permanently remove the trip and all its stops.`);

@@ -36,6 +36,7 @@ async function loadUsers() {
     }
 }
 
+// AI-ASSISTED: GitHub Copilot - Function to populate database statistics cards
 function updateStats(data) {
     const stats = data.stats || {};
     const totalUsers = stats.total_users || 0;

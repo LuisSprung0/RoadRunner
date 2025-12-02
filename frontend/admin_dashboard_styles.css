@@ -64,7 +64,7 @@ body {
     padding: 30px 20px;
 }
 
-/* Stats Summary */
+/* AI-ASSISTED: GitHub Copilot - Stats Summary styling with gradients and responsive grid */
 .stats-summary {
     display: grid;
     grid-template-columns: repeat(4, 1fr);

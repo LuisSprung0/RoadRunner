@@ -199,6 +199,7 @@ def delete_trip(trip_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# AI-ASSISTED: GitHub Copilot - Delete single stop endpoint with reordering
 @app.route('/api/stops/<int:stop_id>', methods=['DELETE'])
 def delete_stop(stop_id):
     """Delete a single stop from a trip"""
@@ -336,6 +337,7 @@ def get_default_prices():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# AI-ASSISTED: GitHub Copilot - Admin API Routes
 # ============ ADMIN API ROUTES ============
 @app.route('/api/admin/login', methods=['POST'])
 def admin_login():
