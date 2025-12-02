@@ -1,5 +1,21 @@
 import {API_URL, showMessage} from './utils.js'
 
+// Logout button handler
+document.getElementById('logout-btn').addEventListener('click', () => {
+    // Clear all user data from localStorage
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('user_email');
+    localStorage.removeItem('current_trip_id');
+    localStorage.removeItem('isAdmin');
+    
+    showMessage('Logged out successfully');
+    
+    // Redirect to login page
+    setTimeout(() => {
+        window.location.href = 'login_page.html';
+    }, 500);
+});
+
 try {
     const user_id = localStorage.getItem('user_id');
     if (!user_id) {
