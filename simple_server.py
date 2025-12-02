@@ -300,6 +300,104 @@ def get_default_prices():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ============ ADMIN API ROUTES ============
+@app.route('/api/admin/login', methods=['POST'])
+def admin_login():
+    """Admin login endpoint"""
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+    
+    if not email or not password:
+        return jsonify({'error': 'Email and password required'}), 400
+    
+    # Define admin credentials (move to env in production!)
+    ADMIN_EMAIL = 'admin@roadrunner.com'
+    ADMIN_PASSWORD = 'admin123'
+    
+    if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
+        return jsonify({
+            'message': 'Admin login successful',
+            'is_admin': True
+        }), 200
+    else:
+        return jsonify({'error': 'Invalid admin credentials'}), 401
+
+@app.route('/api/admin/users', methods=['GET'])
+def get_all_users():
+    """Get all users with their trips for admin dashboard"""
+    try:
+        conn = get_backend_db()
+        cursor = conn.cursor()
+        
+        # Get all users
+        users = cursor.execute('SELECT id, email FROM users ORDER BY id').fetchall()
+        
+        users_data = []
+        for user in users:
+            user_id = user['id']
+            user_email = user['email']
+            
+            # Get all trips for this user
+            trips = cursor.execute(
+                'SELECT id, name, description, image_url, created_at FROM trips WHERE user_id = ? ORDER BY created_at DESC',
+                (user_id,)
+            ).fetchall()
+            
+            trips_data = []
+            for trip in trips:
+                # Get stops for this trip
+                stops = cursor.execute(
+                    'SELECT latitude, longitude, stop_type, time_minutes, cost FROM stops WHERE trip_id = ? ORDER BY stop_order',
+                    (trip['id'],)
+                ).fetchall()
+                
+                trips_data.append({
+                    'trip_id': trip['id'],
+                    'name': trip['name'],
+                    'description': trip['description'] or '',
+                    'image_url': trip['image_url'] if 'image_url' in trip.keys() else '',
+                    'created_at': trip['created_at'],
+                    'stops': [
+                        {
+                            'latitude': s['latitude'],
+                            'longitude': s['longitude'],
+                            'type': s['stop_type'],
+                            'time': s['time_minutes'],
+                            'cost': s['cost']
+                        } for s in stops
+                    ],
+                    'total_cost': sum(s['cost'] for s in stops)
+                })
+            
+            users_data.append({
+                'user_id': user_id,
+                'email': user_email,
+                'trips': trips_data,
+                'trip_count': len(trips_data)
+            })
+        
+        conn.close()
+        
+        # Summary stats
+        total_users = len(users_data)
+        total_trips = sum(u['trip_count'] for u in users_data)
+        total_stops = sum(len(t['stops']) for u in users_data for t in u['trips'])
+        
+        print(f"Admin Dashboard: {total_users} users, {total_trips} trips, {total_stops} stops")
+        
+        return jsonify({
+            'users': users_data,
+            'stats': {
+                'total_users': total_users,
+                'total_trips': total_trips,
+                'total_stops': total_stops
+            }
+        }), 200
+    except Exception as e:
+        print(f"Admin users error: {e}")
+        return jsonify({'error': str(e)}), 500
+
 # Serve frontend
 @app.route('/')
 def index():

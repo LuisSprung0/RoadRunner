@@ -26,10 +26,27 @@ async function loadUsers() {
 
         const data = await response.json();
         allUsers = data.users;
+        
+        // Update stats summary
+        updateStats(data);
+        
         displayUsers(allUsers);
     } catch (error) {
         showMessage('Error: ' + error.message, true);
     }
+}
+
+function updateStats(data) {
+    const stats = data.stats || {};
+    const totalUsers = stats.total_users || 0;
+    const totalTrips = stats.total_trips || 0;
+    const totalStops = stats.total_stops || 0;
+    const totalEntries = totalUsers + totalTrips + totalStops;
+    
+    document.getElementById('totalEntries').textContent = totalEntries.toLocaleString();
+    document.getElementById('totalUsers').textContent = totalUsers.toLocaleString();
+    document.getElementById('totalTrips').textContent = totalTrips.toLocaleString();
+    document.getElementById('totalStops').textContent = totalStops.toLocaleString();
 }
 
 function displayUsers(users) {
