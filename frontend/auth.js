@@ -1,6 +1,19 @@
 import {API_URL, showMessage} from './utils.js';
 
-// REGISTER
+const tabButtons = document.querySelectorAll('.tab-button');
+const tabContents = document.querySelectorAll('.tab-content');
+
+tabButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+        
+        button.classList.add('active');
+        const tabId = button.getAttribute('data-tab');
+        document.getElementById(tabId).classList.add('active');
+    });
+});
+
 const registerForm = document.getElementById('registerForm');
 if (registerForm) {
     registerForm.addEventListener('submit', async (e) => {
@@ -36,7 +49,6 @@ if (registerForm) {
     });
 }
 
-// LOGIN
 const loginForm = document.getElementById('loginForm');
 if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
@@ -56,7 +68,6 @@ if (loginForm) {
             
             if (response.ok) {
                 showMessage("Login successful!");
-                // Store user info in localStorage
                 localStorage.setItem('user_id', data.user.id);
                 localStorage.setItem('userEmail', data.user.email);
                 setTimeout(() => {
@@ -64,6 +75,38 @@ if (loginForm) {
                 }, 1500);
             } else {
                 showMessage(data.error || "Login failed", true);
+            }
+        } catch (error) {
+            showMessage("Error: " + error.message, true);
+        }
+    });
+}
+
+const adminLoginForm = document.getElementById('adminLoginForm');
+if (adminLoginForm) {
+    adminLoginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const email = adminLoginForm.email.value.trim();
+        const password = adminLoginForm.password.value.trim();
+        
+        try {
+            const response = await fetch(`${API_URL}/admin/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                showMessage("Admin login successful!");
+                localStorage.setItem('isAdmin', 'true');
+                setTimeout(() => {
+                    window.location.href = "admin_dashboard.html";
+                }, 1500);
+            } else {
+                showMessage(data.error || "Admin login failed", true);
             }
         } catch (error) {
             showMessage("Error: " + error.message, true);

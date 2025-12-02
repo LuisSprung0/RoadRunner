@@ -10,40 +10,70 @@
     <body>
         <main>
             <img src="images/Road Runner.png" class="social-icons">
-            <div id="input-wrapper">
-                <!-- REGISTER -->
-                <div class="form-block">
-                    <h1 class="form-heading">Register</h1>
-                    <form id="registerForm" class="form input-fields-container">
-                        <div>
-                            <input type="email" name="email" placeholder="Email" class="input-box" required>
-                        </div>
-                        <div><br>
-                            <input type="password" name="password" placeholder="Password" class="input-box" required>
-                        </div>
-                        <div><br>
-                            <input type="password" name="confirm-password" placeholder="Confirm Password" class="input-box" required>
-                        </div>
-                        <div>
-                            <input type="submit" value="Register" class="submit-button">
-                        </div>
-                    </form>
-                </div>
+            
+            <!-- Tab Navigation -->
+            <div class="tab-navigation">
+                <button class="tab-button active" data-tab="user-tab">User</button>
+                <button class="tab-button" data-tab="admin-tab">Admin</button>
+            </div>
+            
+            <!-- USER TAB -->
+            <div id="user-tab" class="tab-content active">
+                <div id="input-wrapper">
+                    <!-- REGISTER -->
+                    <div class="form-block">
+                        <h1 class="form-heading">Register</h1>
+                        <form id="registerForm" class="form input-fields-container">
+                            <div>
+                                <input type="email" name="email" placeholder="Email" class="input-box" required>
+                            </div>
+                            <div><br>
+                                <input type="password" name="password" placeholder="Password" class="input-box" required>
+                            </div>
+                            <div><br>
+                                <input type="password" name="confirm-password" placeholder="Confirm Password" class="input-box" required>
+                            </div>
+                            <div>
+                                <input type="submit" value="Register" class="submit-button">
+                            </div>
+                        </form>
+                    </div>
 
-                <!-- LOGIN -->
-                <div class="form-block">
-                    <h1 class="form-heading">Sign In</h1>
-                    <form id="loginForm" class="form input-fields-container">
-                        <div>
-                            <input type="email" name="email" placeholder="Email" class="input-box" required>
-                        </div>
-                        <div><br>
-                            <input type="password" name="password" placeholder="Password" class="input-box" required>
-                        </div>
-                        <div>
-                            <input type="submit" value="Sign In" class="submit-button">
-                        </div>
-                    </form>    
+                    <!-- LOGIN -->
+                    <div class="form-block">
+                        <h1 class="form-heading">Sign In</h1>
+                        <form id="loginForm" class="form input-fields-container">
+                            <div>
+                                <input type="email" name="email" placeholder="Email" class="input-box" required>
+                            </div>
+                            <div><br>
+                                <input type="password" name="password" placeholder="Password" class="input-box" required>
+                            </div>
+                            <div>
+                                <input type="submit" value="Sign In" class="submit-button">
+                            </div>
+                        </form>    
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ADMIN TAB -->
+            <div id="admin-tab" class="tab-content">
+                <div id="admin-input-wrapper">
+                    <div class="form-block">
+                        <h1 class="form-heading">Admin Login</h1>
+                        <form id="adminLoginForm" class="form input-fields-container">
+                            <div>
+                                <input type="email" name="email" placeholder="Admin Email" class="input-box" required>
+                            </div>
+                            <div><br>
+                                <input type="password" name="password" placeholder="Admin Password" class="input-box" required>
+                            </div>
+                            <div>
+                                <input type="submit" value="Admin Login" class="submit-button">
+                            </div>
+                        </form>    
+                    </div>
                 </div>
             </div>
         </main>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Admin Dashboard - RoadRunner</title>
+    <link rel="stylesheet" href="admin_dashboard_styles.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="header-content">
+                <h1>RoadRunner Admin Dashboard</h1>
+                <button id="logoutBtn" class="logout-button">Logout</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="admin-content">
+            <div class="controls">
+                <h2>Users & Trips Overview</h2>
+                <div class="filter-options">
+                    <input type="text" id="searchInput" placeholder="Search users by email..." class="search-box">
+                    <select id="sortSelect" class="sort-select">
+                        <option value="email">Sort by Email</option>
+                        <option value="trips">Sort by Trip Count</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Users List -->
+            <div id="usersList" class="users-list">
+                <div class="loading">Loading users...</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="admin_dashboard.js"></script>
+</body>
+</html>

@@ -2,29 +2,23 @@
 import os
 from datetime import datetime
 from dotenv import load_dotenv
-import googlemaps
 
-# Load .env from the backend directory (works regardless of where script is run from)
-backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-env_path = os.path.join(backend_dir, '.env')
-load_dotenv(env_path)
-
+load_dotenv()
 GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY')
-print(f"DEBUG - Maps service loading API key from: {env_path}")
-print(f"DEBUG - API key found: {'Yes' if GOOGLE_MAPS_API_KEY else 'No'}")
 
-if not GOOGLE_MAPS_API_KEY:
-    raise ValueError("No GOOGLE_MAPS_API_KEY found in .env file")
-try:
-    gmaps = googlemaps.Client(key=GOOGLE_MAPS_API_KEY)
-    print("DEBUG - Google Maps client initialized successfully")
-except Exception as e:
-    print(f"Warning: Could not initialize Google Maps client. Error: {e}")
-    gmaps = None
+gmaps = None
+if GOOGLE_MAPS_API_KEY and GOOGLE_MAPS_API_KEY != 'your-api-key-here':
+    try:
+        import googlemaps
+        gmaps = googlemaps.Client(key=GOOGLE_MAPS_API_KEY)
+    except Exception as e:
+        print(f"Warning: Could not initialize Google Maps: {e}")
 
 class MapsService:
     @staticmethod
     def geocode(address):
+        if not gmaps:
+            return None
         result = gmaps.geocode(address)
         if result:
             location = result[0]['geometry']['location']
@@ -33,6 +27,8 @@ class MapsService:
 
     @staticmethod
     def reverse_geocode(latitude, longitude):
+        if not gmaps:
+            return None
         result = gmaps.reverse_geocode((latitude, longitude))
         if result:
             return result[0]['formatted_address']
@@ -40,6 +36,8 @@ class MapsService:
 
     @staticmethod
     def get_directions(origin, destination, waypoints=[], mode='driving'):
+        if not gmaps:
+            return None
         directions_result = gmaps.directions(origin,
                                             destination,
                                             waypoints=waypoints,
@@ -55,6 +53,6 @@ class MapsService:
 
         return {'route': route, 
                 'polyline': polyline, 
-                'total_distance': total_distance, #in meters
-                'total_duration': total_duration} #in seconds
+                'total_distance': total_distance,
+                'total_duration': total_duration}
     
