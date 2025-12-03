@@ -447,6 +447,6 @@ def serve_file(path):
 
 if __name__ == '__main__':
     init_db()
-    print("\n✅ Integrated RoadRunner Server starting...")
-    print("✅ Open your browser to: http://localhost:5001\n")
+    print("Integrated RoadRunner Server starting...")
+    print("Open your browser to: http://localhost:5001\n")
     app.run(host='0.0.0.0', port=5001, debug=True)

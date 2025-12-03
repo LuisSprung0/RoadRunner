@@ -68,7 +68,8 @@ async function initMap() {
         const directions = await fetchDirections();
         window.polyline = await drawRoute(directions);
 
-        if (startTime) {
+        // AI-ASSISTED: GitHub Copilot - Added null check for directions and total_duration to prevent NaN
+        if (startTime && directions && directions['total_duration'] != null) {
           const arrivalTime = new Date(startTime.getTime() + directions['total_duration'] * 1000);
           showMessage(`Estimated arrival time at final destination: 
             ${arrivalTime.getHours().toString().padStart(2, '0')}:${arrivalTime.getMinutes().toString().padStart(2, '0')}`);
@@ -578,9 +579,14 @@ calculateTravelTimeBtn.addEventListener('click', async (e) => {
 
     if (window.tripMarkers.length >= 2) {
       const directions = await fetchDirections();
-      const arrivalTime = new Date(startTime.getTime() + directions['total_duration'] * 1000);
-      showMessage(`Estimated arrival time at final destination: 
-        ${arrivalTime.getHours().toString().padStart(2, '0')}:${arrivalTime.getMinutes().toString().padStart(2, '0')}`);
+      // AI-ASSISTED: GitHub Copilot - Added null check for directions and total_duration to prevent NaN
+      if (directions && directions['total_duration'] != null) {
+        const arrivalTime = new Date(startTime.getTime() + directions['total_duration'] * 1000);
+        showMessage(`Estimated arrival time at final destination: 
+          ${arrivalTime.getHours().toString().padStart(2, '0')}:${arrivalTime.getMinutes().toString().padStart(2, '0')}`);
+      } else {
+        showMessage('Could not calculate arrival time. Please ensure the route is valid.');
+      }
     }
   } catch (error) {
     console.log(error);
